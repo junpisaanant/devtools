@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 Database Migrate Script Generator</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+
+    <style>
+        :root {
+            --primary: #ea4335; --primary-hover: #c5221f;
+            --secondary: #f8fafc;
+            --success: #10b981;
+            --info: #0ea5e9;
+            --dark: #1e293b; --gray: #64748b;
+            --light-gray: #e2e8f0; --bg: #f8f9fa;
+            --google-red: #ea4335;
+            --header-border: #dadce0;
+        }
+
+        body { font-family: 'Prompt', sans-serif; background-color: var(--bg); color: var(--dark); margin: 0; padding: 0; }
+        
+        .app-header { background-color: #ffffff; height: 64px; display: flex; align-items: center; padding: 0 20px; border-bottom: 1px solid var(--header-border); position: sticky; top: 0; z-index: 1000; }
+        .header-left { display: flex; align-items: center; gap: 12px; }
+        .back-btn { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; color: #5f6368; text-decoration: none; transition: background-color 0.2s; }
+        .back-btn:hover { background-color: #f1f3f4; }
+        .header-brand { font-size: 20px; font-family: 'Roboto', 'Prompt', sans-serif; font-weight: 500; color: #202124; display: flex; align-items: center; gap: 10px; text-decoration: none; }
+        .header-brand .material-symbols-outlined { color: var(--google-red); font-size: 28px; }
+
+        .main-content { padding: 40px 15px; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        h2 { text-align: center; color: var(--primary); margin-bottom: 30px; font-weight: 700; font-size: 28px; }
+
+        .card { background: #ffffff; border-radius: 12px; padding: 25px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); margin-bottom: 25px; border-top: 4px solid var(--primary); }
+        .card-title { font-size: 18px; font-weight: 600; color: var(--dark); margin-top: 0; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+
+        .flex-container { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 15px; }
+        .flex-box { flex: 1; min-width: 45%; }
+        
+        label { display: block; font-weight: 500; margin-bottom: 8px; color: var(--dark); }
+        input[type="text"], textarea { width: 100%; padding: 12px 15px; border: 1px solid var(--light-gray); border-radius: 8px; box-sizing: border-box; font-family: 'Courier New', Courier, monospace; font-size: 14px; background-color: var(--secondary); transition: all 0.3s ease; }
+        input[type="text"]:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(234, 67, 53, 0.2); background-color: #ffffff; }
+        
+        .btn-main { background-color: var(--primary); color: white; padding: 15px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 18px; font-weight: 600; width: 100%; transition: all 0.3s; box-shadow: 0 4px 6px rgba(234, 67, 53, 0.2); font-family: 'Prompt', sans-serif; margin-top: 10px; }
+        .btn-main:hover { background-color: var(--primary-hover); transform: translateY(-2px); }
+        
+        .btn-action { font-family: 'Prompt', sans-serif; font-size: 14px; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; color: white; transition: 0.2s; display: flex; align-items: center; gap: 5px; }
+        .btn-copy { background-color: var(--info); }
+        .btn-copy:hover { background-color: #0284c7; }
+        
+        .hint { font-size: 13px; color: var(--gray); margin-top: 8px; }
+        .output-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--light-gray);}
+        .output-header label { margin-bottom: 0; font-size: 15px; color: var(--primary); font-weight: 600;}
+    </style>
+</head>
+<body>
+
+    <header class="app-header">
+        <div class="header-left">
+            <a href="index.html" class="back-btn" title="กลับหน้าหลัก">
+                <span class="material-symbols-outlined">arrow_back</span>
+            </a>
+            <a href="index.html" class="header-brand">
+                <span class="material-symbols-outlined header-brand-icon">move_up</span>
+                Workspace
+            </a>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            <h2>🚀 Auto Migrate Script Generator</h2>
+
+            <div class="card" style="border-top-color: var(--info);">
+                <h3 class="card-title">📝 1. กำหนดโครงสร้าง (DataDict หรือ CREATE TABLE Script)</h3>
+                
+                <div class="flex-container">
+                    <div class="flex-box">
+                        <div style="background-color: #f1f5f9; padding: 15px; border-radius: 8px; border: 1px dashed #94a3b8;">
+                            <label style="color: #475569;">📥 ชื่อตารางเก่า (Old Table):</label>
+                            <input type="text" id="oldTableName" placeholder="เช่น A1_ADJUST_BANK_BALANCE_D (เว้นว่างได้ถ้าวางโค้ด CREATE TABLE)" style="margin-bottom: 15px;">
+                            
+                            <label style="color: #475569;">วางข้อมูลตารางเก่า:</label>
+                            <textarea id="oldInput" rows="10" placeholder="วาง DataDict หรือ โค้ด CREATE TABLE ของตารางเก่าที่นี่..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="flex-box">
+                        <div style="background-color: #f0fdf4; padding: 15px; border-radius: 8px; border: 1px dashed #34d399;">
+                            <label style="color: #047857;">📤 ชื่อตารางใหม่ (New Table):</label>
+                            <input type="text" id="newTableName" placeholder="เช่น A1_ADJUST_BANK_BALANCE_DETAILS (เว้นว่างได้ถ้าวางโค้ด CREATE TABLE)" style="margin-bottom: 15px;">
+                            
+                            <label style="color: #047857;">วางข้อมูลตารางใหม่:</label>
+                            <textarea id="newInput" rows="10" placeholder="วาง DataDict หรือ โค้ด CREATE TABLE ของตารางใหม่ที่นี่..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hint" style="text-align: center;">💡 ระบบจะทำการจับคู่คอลัมน์ให้อัตโนมัติ (คอลัมน์ทั่วไป, Audit Log และ Primary Key)</div>
+                <button class="btn-main" onclick="generateMigrate()">🚀 สร้าง Migrate Script</button>
+            </div>
+
+            <div class="card" style="border-top-color: var(--primary);">
+                <div class="output-header" style="border-bottom: none;">
+                    <h3 class="card-title" style="margin: 0;">🗄️ 2. ผลลัพธ์ Migration Script</h3>
+                    <button class="btn-action btn-copy" onclick="copyText('outputScript', 'Migrate Script')">📋 คัดลอก Script</button>
+                </div>
+                <textarea id="outputScript" rows="15" readonly placeholder="ผลลัพธ์ INSERT INTO ... SELECT ... จะแสดงที่นี่..."></textarea>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // ฟังก์ชันอ่านข้อความเพื่อดึงชื่อตารางและรายชื่อคอลัมน์ (รองรับทั้ง DataDict และ CREATE TABLE)
+        function parseStructure(rawText, inputIdForTableName) {
+            let lines = rawText.split('\n');
+            let cols = [];
+            let tableName = document.getElementById(inputIdForTableName).value.trim().toUpperCase();
+            
+            // พยายามหาชื่อตารางจาก CREATE TABLE ถ้าผู้ใช้ไม่ได้กรอกไว้
+            let tbMatch = rawText.match(/CREATE\s+(?:OR\s+REPLACE\s+)?TABLE\s+(?:\"[^\"]+\"\.)?\"([A-Z0-9_]+)\"/i) || rawText.match(/CREATE\s+TABLE\s+(?:[A-Z0-9_]+\.)?([A-Z0-9_]+)/i);
+            if (tbMatch && !tableName) {
+                tableName = tbMatch[1].toUpperCase();
+                document.getElementById(inputIdForTableName).value = tableName; // เติมกลับไปในช่อง UI
+            }
+
+            for (let line of lines) {
+                let tLine = line.trim();
+                if (!tLine || tLine.includes("ชื่อแอตทริบิวต์") || tLine.includes("ลำดับ") || tLine.includes("ชนิดข้อมูล")) continue;
+                
+                // ตรวจสอบถ้าเป็น CREATE TABLE
+                if (rawText.match(/CREATE\s+TABLE/i)) {
+                    if (tLine.match(/^CONSTRAINT/i) || tLine.match(/^USING/i) || tLine.match(/^STORAGE/i) || tLine.match(/^TABLESPACE/i)) continue;
+                    let colMatch = tLine.match(/^\"([A-Z0-9_]+)\"/i);
+                    if (colMatch) {
+                        cols.push({ name: colMatch[1].toUpperCase(), isPk: false });
+                    }
+                } else {
+                    // ตรวจสอบถ้าเป็น DataDict (ตัดแท็บและช่องว่าง)
+                    let parts = tLine.replace(/\t/g, ' ').replace(/\s+/g, ' ').replace(/\|/g, '').trim().split(' ');
+                    if (/^\d+\.?$/.test(parts[0]) || /^[A-Z]\.$/i.test(parts[0])) parts.shift();
+                    if (parts.length === 0) continue;
+                    
+                    let colName = parts[0].toUpperCase().replace(/[^A-Z0-9_]/g, '');
+                    if (/^[A-Z_][A-Z0-9_]*$/.test(colName)) {
+                        let isPk = tLine.toUpperCase().includes('PK');
+                        cols.push({ name: colName, isPk: isPk });
+                    }
+                }
+            }
+
+            // ค้นหา PK จาก CREATE TABLE (ถ้ามี)
+            let pkRegex = /PRIMARY\s+KEY\s+\(\"([A-Z0-9_]+)\"\)/gi;
+            let pkMatch;
+            while ((pkMatch = pkRegex.exec(rawText)) !== null) {
+                let pkCol = pkMatch[1].toUpperCase();
+                let c = cols.find(c => c.name === pkCol);
+                if(c) c.isPk = true;
+            }
+
+            return { tableName: tableName || "UNKNOWN_TABLE", columns: cols };
+        }
+
+        function generateMigrate() {
+            const oldRaw = document.getElementById('oldInput').value.trim();
+            const newRaw = document.getElementById('newInput').value.trim();
+
+            if (!oldRaw || !newRaw) {
+                alert("⚠️ กรุณาวางข้อมูลโครงสร้างตารางทั้งเก่าและใหม่ให้ครบถ้วนครับ");
+                return;
+            }
+
+            const oldData = parseStructure(oldRaw, 'oldTableName');
+            const newData = parseStructure(newRaw, 'newTableName');
+
+            // สร้างส่วน INSERT INTO
+            let insertCols = [];
+            newData.columns.forEach(c => insertCols.push(c.name));
+            
+            // สร้างส่วน SELECT
+            let selectLines = [];
+            let oldAlias = "O"; // Alias มาตรฐานสำหรับตารางเก่า
+
+            newData.columns.forEach(newCol => {
+                let name = newCol.name;
+                
+                // หาว่าคอลัมน์ชื่อเดียวกันมีในตารางเก่าไหม
+                let matchedOld = oldData.columns.find(c => c.name === name);
+
+                if (matchedOld) {
+                    selectLines.push(`    ${oldAlias}.${name}`);
+                } 
+                // จัดการ Auto-Mapping Audit Log และ Default Values
+                else if (name === 'CREATED_BY' || name === 'LAST_UPDATE_BY') {
+                    selectLines.push(`    'MIGRATE' /* ${name} */`);
+                } 
+                else if (name === 'CREATED_DTM' || name === 'LAST_UPDATE_DTM') {
+                    selectLines.push(`    SYSDATE /* ${name} */`);
+                } 
+                else if (newCol.isPk) {
+                    // ถ้าเป็น Primary Key ใหม่ที่ตารางเก่าไม่มี ให้ใช้ ROWNUM นำร่อง
+                    selectLines.push(`    ROWNUM /* รัน PK ${name} หรือใช้ Sequence */`);
+                } 
+                else {
+                    // หาคู่ไม่เจอจริงๆ ทำ Placeholder ไว้ให้เขียนโค้ดเพิ่ม
+                    selectLines.push(`    NULL /* 💥 TODO: ระบุค่าให้ ${name} */`);
+                }
+            });
+
+            // ประกอบร่าง Script
+            let script = `INSERT INTO ${newData.tableName} (\n`;
+            script += `    ${insertCols.join(', ')}\n`;
+            script += `)\nSELECT\n`;
+            script += selectLines.join(',\n') + '\n';
+            script += `FROM ${oldData.tableName} ${oldAlias}\n`;
+            script += `/*\n`;
+            script += `  -- TODO: เพิ่มเงื่อนไข JOIN ตรงนี้ถ้ามีการ Mapping ข้อมูลจากตาราง Master อื่นๆ\n`;
+            script += `  -- INNER JOIN MST_TABLE M ON (${oldAlias}.REF_ID = M.MAP_ID)\n`;
+            script += `*/;`;
+
+            document.getElementById('outputScript').value = script;
+            window.scrollTo({ top: document.getElementById('outputScript').offsetTop - 100, behavior: 'smooth' });
+        }
+
+        function copyText(elementId, labelName) {
+            const textEl = document.getElementById(elementId);
+            if (!textEl.value) { alert(`⚠️ ไม่มีข้อมูลให้คัดลอก`); return; }
+            textEl.select(); document.execCommand("copy"); window.getSelection().removeAllRanges();
+            const btn = event.currentTarget; const originalText = btn.innerHTML;
+            btn.innerHTML = `✅ คัดลอกแล้ว`; btn.style.backgroundColor = '#059669';
+            setTimeout(() => { btn.innerHTML = originalText; btn.style.backgroundColor = ''; }, 2000);
+        }
+    </script>
+</body>
+</html>
