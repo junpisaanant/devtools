@@ -3,64 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>⚡ Smart Table to Oracle SQL Generator</title>
+    <title>⚡ Smart Table to SQL & XML Generator</title>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; color: #333; margin: 0; padding: 20px; }
-        .container { max-width: 950px; margin: 0 auto; background: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .container { max-width: 1200px; margin: 0 auto; background: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         h2 { text-align: center; color: #2c3e50; margin-bottom: 25px; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
-        .form-row { display: flex; gap: 15px; margin-bottom: 15px; }
-        .form-group { flex: 1; }
+        
+        .form-row { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
+        .form-group { flex: 1; min-width: 300px; }
+        
         label { display: block; font-weight: bold; margin-bottom: 8px; color: #2c3e50; }
         input[type="text"], textarea { width: 100%; padding: 12px; border: 1px solid #bdc3c7; border-radius: 6px; box-sizing: border-box; font-family: 'Courier New', Courier, monospace; font-size: 14px; }
         input[type="text"]:focus, textarea:focus { outline: none; border-color: #3498db; box-shadow: 0 0 5px rgba(52, 152, 219, 0.3); }
+        
         button { background-color: #3498db; color: white; padding: 12px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; width: 100%; transition: background-color 0.3s; margin-bottom: 15px; }
         button:hover { background-color: #2980b9; }
         .btn-ocr { background-color: #27ae60; margin-top: 10px;}
         .btn-ocr:hover { background-color: #2ecc71; }
         .btn-ocr:disabled { background-color: #95a5a6; cursor: not-allowed; }
+        
+        .btn-action { width: auto; font-size: 14px; padding: 6px 12px; margin-bottom: 0; }
+        .btn-download { background-color: #8e44ad; }
+        .btn-download:hover { background-color: #732d91; }
+        .btn-copy { background-color: #e67e22; }
+        .btn-copy:hover { background-color: #d35400; }
+        .btn-copy-sql { background-color: #16a085; }
+        .btn-copy-sql:hover { background-color: #1abc9c; }
+        
         .hint { font-size: 13px; color: #e67e22; margin-top: 5px; font-weight: bold; }
         
         .paste-zone { border: 2px dashed #bdc3c7; border-radius: 8px; padding: 20px; text-align: center; background-color: #f9f9f9; margin-bottom: 15px; transition: background-color 0.3s;}
         .paste-zone:hover { background-color: #f1f2f6; border-color: #3498db;}
         #imagePreview { max-width: 100%; max-height: 250px; display: none; margin: 10px auto; border: 1px solid #ccc; border-radius: 4px;}
         #ocrStatus { font-weight: bold; color: #2980b9; margin-top: 10px; background: #e8f4f8; padding: 10px; border-radius: 5px; display: none; }
+        
+        .output-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;}
+        .output-header label { margin-bottom: 0; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>⚡ Smart Table to Oracle SQL Generator (Offline)</h2>
+        <h2>⚡ Smart Table to SQL & XML Generator</h2>
 
         <div class="form-row">
             <div class="form-group">
                 <label>1. ชื่อตาราง (Table Name):</label>
-                <input type="text" id="tableName" placeholder="เช่น E8_CUS_INDICATORS">
+                <input type="text" id="tableName" placeholder="เช่น E4_EMERGENCY_REPAIR_EXPENSES">
             </div>
             <div class="form-group">
                 <label>2. คำอธิบายตาราง (Table Comment):</label>
-                <input type="text" id="tableComment" placeholder="เช่น ตารางดัชนีราคาผู้บริโภค">
+                <input type="text" id="tableComment" placeholder="เช่น ตารางหมวดค่าใช้จ่ายซ่อมฉุกเฉิน">
             </div>
         </div>
 
         <div class="form-group">
-            <label>3. นำเข้าข้อมูลตาราง (แนะนำให้ ก๊อปปี้ข้อความตารางจาก Word มาวาง):</label>
-            
+            <label>3. นำเข้าข้อมูลตาราง (ก๊อปปี้ข้อความจากเอกสารมาวาง):</label>
             <div class="paste-zone" id="pasteZone">
                 <p>📸 <b>คลิกที่นี่ แล้วกด Ctrl+V เพื่อวางรูปภาพตาราง (สำหรับการอ่าน OCR)</b></p>
                 <img id="imagePreview" src="" alt="Image Preview">
                 <button type="button" class="btn-ocr" onclick="extractTextFromImage()" id="btnOcr" style="display: none;">🔍 อ่านตัวหนังสือจากรูปภาพ</button>
                 <div id="ocrStatus"></div>
             </div>
-
-            <textarea id="inputData" rows="8" placeholder="คลุมดำตารางใน Word แล้ว Paste ลงที่นี่ จะแม่นยำที่สุดครับ..."></textarea>
-            <div class="hint">✨ หมายเหตุ: การอ่านภาพภาษาไทยอาจมีเพี้ยนบ้าง หากมีไฟล์ต้นฉบับ แนะนำให้ก๊อปข้อความมาวางตรงๆ ในช่องนี้เลยครับ</div>
+            <textarea id="inputData" rows="8" placeholder="คลุมดำตารางใน Word แล้ว Paste ลงที่นี่..."></textarea>
         </div>
 
-        <button onclick="generateSQL()">⚙️ แปลงข้อความเป็น SQL Script</button>
+        <button onclick="generateOutputs()">⚙️ แปลงข้อมูลทั้งหมด (SQL, XML, SELECT)</button>
 
-        <div class="form-group">
-            <label>4. ผลลัพธ์ SQL Script:</label>
-            <textarea id="outputSQL" rows="15" readonly placeholder="ผลลัพธ์จะแสดงที่นี่..."></textarea>
+        <div class="form-row">
+            <div class="form-group">
+                <div class="output-header">
+                    <label>4. CREATE TABLE Script:</label>
+                    <button class="btn-action btn-download" onclick="downloadSQL()">💾 โหลด .sql</button>
+                </div>
+                <textarea id="outputSQL" rows="18" readonly placeholder="ผลลัพธ์ SQL Script จะแสดงที่นี่..."></textarea>
+            </div>
+            
+            <div class="form-group">
+                <div class="output-header">
+                    <label>5. XML (xs:element):</label>
+                    <button class="btn-action btn-copy" onclick="copyText('outputXML', 'XML')">📋 คัดลอก XML</button>
+                </div>
+                <textarea id="outputXML" rows="18" readonly placeholder="ผลลัพธ์ XML จะแสดงที่นี่..."></textarea>
+            </div>
+            
+            <div class="form-group">
+                <div class="output-header">
+                    <label>6. SELECT Query:</label>
+                    <button class="btn-action btn-copy-sql" onclick="copyText('outputSelect', 'Query')">📋 คัดลอก Query</button>
+                </div>
+                <textarea id="outputSelect" rows="18" readonly placeholder="ผลลัพธ์ SELECT Query จะแสดงที่นี่..."></textarea>
+            </div>
         </div>
     </div>
 
@@ -93,10 +126,8 @@
 
         async function extractTextFromImage() {
             if (!currentImageFile) return;
-            
             const statusElem = document.getElementById('ocrStatus');
             const btnOcr = document.getElementById('btnOcr');
-            
             statusElem.style.display = 'block';
             statusElem.innerText = "⏳ กำลังเตรียมระบบ AI... (รอสักครู่นะครับ)";
             statusElem.style.color = "#e67e22";
@@ -115,12 +146,9 @@
                 
                 statusElem.innerText = "⏳ เริ่มดึงข้อมูลจากรูปภาพ...";
                 const ret = await worker.recognize(currentImageFile);
-                
                 document.getElementById('inputData').value = ret.data.text;
-                
-                statusElem.innerText = "✅ เสร็จสิ้น! โปรดตรวจสอบความถูกต้องของข้อความก่อนกดแปลง (AI อาจอ่านภาษาไทยเพี้ยนบางคำ)";
+                statusElem.innerText = "✅ เสร็จสิ้น! โปรดตรวจสอบความถูกต้องของข้อความก่อนกดแปลง";
                 statusElem.style.color = "#27ae60";
-                
                 await worker.terminate();
             } catch (error) {
                 console.error(error);
@@ -131,7 +159,14 @@
             }
         }
 
-        function generateSQL() {
+        // --- Helper สำหรับแปลงชื่อคอลัมน์เป็น Camel Case (เช่น JN5_ID -> jn5Id) ---
+        function toCamelCase(str) {
+            return str.toLowerCase().replace(/_([a-z0-9])/g, function (g) { 
+                return g[1].toUpperCase(); 
+            });
+        }
+
+        function generateOutputs() {
             const tableName = document.getElementById('tableName').value.trim().toUpperCase();
             const tableComment = document.getElementById('tableComment').value.trim();
             const rawData = document.getElementById('inputData').value.trim();
@@ -144,6 +179,7 @@
             const lines = rawData.split('\n');
             let parsedCols = [];
 
+            // --- Parsing Logic ---
             for (let i = 0; i < lines.length; i++) {
                 let line = lines[i].trim();
                 if (!line || line.includes("ชื่อแอตทริบิวต์") || line.includes("ลำดับ") || line.includes("ชนิดข้อมูล")) continue;
@@ -156,31 +192,18 @@
                 }
                 if (parts.length === 0) continue;
 
-                let colName = parts[0].toUpperCase();
-                colName = colName.replace(/[^A-Z0-9_]/g, '');
+                let colName = parts[0].toUpperCase().replace(/[^A-Z0-9_]/g, '');
 
                 if (/^[A-Z_][A-Z0-9_]*$/.test(colName) && parts.length > 1) {
                     parts.shift(); 
                     let remaining = parts.join(' ');
-                    
-                    let colType = "";
-                    let isNull = "NULL";
-                    let keys = "";
-                    let refTable = "";
+                    let colType = ""; let isNull = "NULL"; let keys = ""; let refTable = "";
 
                     let typeRegex = /^(NUMBER\s*\([^)]+\)|VARCHAR2\s*\([^)]+\)|CHAR\s*\([^)]+\)|DATE|NUMBER)/i;
                     let typeMatch = remaining.match(typeRegex);
-                    
                     if (typeMatch) {
-                        // เปลี่ยน BYTE เป็น CHAR ก่อน
-                        let rawType = typeMatch[0].toUpperCase().replace(/BYTE/g, 'CHAR');
-                        
-                        // ลบช่องว่างทั้งหมดออกก่อน (กลายเป็น VARCHAR2(250CHAR) หรือ NUMBER(16,2))
-                        rawType = rawType.replace(/\s/g, '');
-                        
-                        // เติมช่องว่างให้ถูกต้องตามกฎ (เช่น เปลี่ยน 250CHAR เป็น 250 CHAR)
+                        let rawType = typeMatch[0].toUpperCase().replace(/BYTE/g, 'CHAR').replace(/\s/g, '');
                         colType = rawType.replace(/(\d+)CHAR\)/g, '$1 CHAR)');
-                        
                         remaining = remaining.substring(typeMatch[0].length).trim();
                     } else {
                         colType = parts[0].toUpperCase();
@@ -214,7 +237,6 @@
                     if(colName !== "") {
                        parsedCols.push({ colName, colType, isNull, comment, keys, refTable });
                     }
-
                 } else {
                     if (parsedCols.length > 0) {
                         parsedCols[parsedCols.length - 1].comment += " " + normLine;
@@ -222,50 +244,100 @@
                 }
             }
 
-            let columnsSql = [];
-            let pkSql = "";
-            let fksSql = [];
-            let uksSql = [];
-            let chksSql = [];
+            // --- Logic สำหรับสร้าง Table Alias (เช่น E4_EMERGENCY_REPAIR_EXPENSES -> ERE) ---
+            let tableWords = tableName.split('_');
+            let tableAlias = "T"; // ค่าเริ่มต้น
+            if (tableWords.length > 1) {
+                // ข้ามส่วนแรกไป (เช่น E4) แล้วเอาตัวอักษรตัวแรกของคำที่เหลือมาต่อกัน
+                tableAlias = tableWords.slice(1).map(w => w[0]).join('');
+            } else if (tableName.length >= 2) {
+                tableAlias = tableName.substring(0, 2);
+            }
+
+            // --- Builders ---
+            let columnsSql = []; let pkSql = ""; let fksSql = []; let uksSql = []; let chksSql = [];
             let commentsSql = [`COMMENT ON TABLE ${tableName} IS '${tableComment}';`];
+            let xmlOutput = [];
+            let selectLines = [];
 
             parsedCols.forEach(col => {
+                // --- 1. SQL Process ---
                 columnsSql.push(`    ${col.colName.padEnd(30)} ${col.colType.padEnd(20)} ${col.isNull}`);
                 commentsSql.push(`COMMENT ON COLUMN ${tableName}.${col.colName.padEnd(30)} IS '${col.comment}';`);
 
-                if (col.keys.includes("PK")) {
-                    pkSql = `ALTER TABLE ${tableName}\nADD CONSTRAINT ${tableName}_PK PRIMARY KEY (${col.colName});\n`;
-                }
-                
+                if (col.keys.includes("PK")) pkSql = `ALTER TABLE ${tableName}\nADD CONSTRAINT ${tableName}_PK PRIMARY KEY (${col.colName});\n`;
                 let fkMatch = col.keys.match(/FK\d*/);
                 if (fkMatch && col.refTable) {
                     let refClean = col.refTable.split('.')[0]; 
                     fksSql.push(`ALTER TABLE ${tableName}\nADD CONSTRAINT ${tableName}_${fkMatch[0]} FOREIGN KEY (${col.colName}) REFERENCES ${refClean} (${col.colName});`);
                 }
-
                 let uMatch = col.keys.match(/U\d*/);
-                if (uMatch) {
-                    uksSql.push(`ALTER TABLE ${tableName}\nADD CONSTRAINT ${tableName}_${uMatch[0]} UNIQUE (${col.colName});`);
-                }
-
+                if (uMatch) uksSql.push(`ALTER TABLE ${tableName}\nADD CONSTRAINT ${tableName}_${uMatch[0]} UNIQUE (${col.colName});`);
                 let chkMatch = col.keys.match(/CHK\d*/);
-                if (chkMatch) {
-                    chksSql.push(`ALTER TABLE ${tableName}\nADD CONSTRAINT ${tableName}_${chkMatch[0]} CHECK (${col.colName} IN ('Y','N'));`);
+                if (chkMatch) chksSql.push(`ALTER TABLE ${tableName}\nADD CONSTRAINT ${tableName}_${chkMatch[0]} CHECK (${col.colName} IN ('Y','N'));`);
+
+                // --- 2. XML Process ---
+                let xmlName = toCamelCase(col.colName);
+                let isDateType = col.colType.includes('DATE') || col.colType.includes('TIMESTAMP');
+                let xmlType = isDateType ? 'xs:dateTime' : 'xs:string';
+                let minOccurs = (col.isNull === 'NOT NULL') ? '1' : '0';
+                let safeComment = col.comment.replace(/["']/g, ''); // กัน XML พัง
+                xmlOutput.push(`<xs:element name="${xmlName}" type="${xmlType}" minOccurs="${minOccurs}" sm:description="${safeComment}"/>`);
+
+                // --- 3. SELECT Query Process ---
+                if (isDateType) {
+                    selectLines.push(`    TO_CHAR(${tableAlias}.${col.colName}, 'YYYY-MM-DD HH24:MI:SS') AS ${col.colName}`);
+                } else {
+                    selectLines.push(`    ${tableAlias}.${col.colName}`);
                 }
             });
 
+            // Combine SQL
             let finalScript = `CREATE SEQUENCE ${tableName}_SEQ START WITH 1 INCREMENT BY 1 NOMAXVALUE;\n\n`;
-            finalScript += `CREATE TABLE ${tableName}\n(\n`;
-            finalScript += columnsSql.join(",\n");
-            finalScript += `\n);\n\n-- Primary Key\n${pkSql}`;
-
+            finalScript += `CREATE TABLE ${tableName}\n(\n${columnsSql.join(",\n")}\n);\n\n-- Primary Key\n${pkSql}`;
             if (fksSql.length > 0) finalScript += `\n-- Foreign Keys\n${fksSql.join("\n\n")}\n`;
             if (uksSql.length > 0) finalScript += `\n-- Unique Keys\n${uksSql.join("\n\n")}\n`;
             if (chksSql.length > 0) finalScript += `\n-- Check Constraints\n${chksSql.join("\n\n")}\n`;
-
             finalScript += `\n-- Comments\n${commentsSql.join("\n")}`;
 
+            // Combine SELECT Query
+            let finalSelectQuery = `SELECT\n${selectLines.join(",\n")}\nFROM\n    ${tableName} ${tableAlias};`;
+
+            // Set Outputs
             document.getElementById('outputSQL').value = finalScript;
+            document.getElementById('outputXML').value = xmlOutput.join("\n");
+            document.getElementById('outputSelect').value = finalSelectQuery;
+        }
+
+        // --- ฟังก์ชันดาวน์โหลด SQL ---
+        function downloadSQL() {
+            const sqlText = document.getElementById('outputSQL').value;
+            let tableName = document.getElementById('tableName').value.trim().toUpperCase() || 'TABLE_SCRIPT';
+            if (!sqlText) {
+                alert("⚠️ ไม่มีข้อมูลให้ดาวน์โหลด กรุณากดปุ่มแปลงข้อความก่อนครับ");
+                return;
+            }
+            const blob = new Blob([sqlText], { type: 'text/sql;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${tableName}.sql`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // --- ฟังก์ชันคัดลอกข้อความ ---
+        function copyText(elementId, labelName) {
+            const textEl = document.getElementById(elementId);
+            if (!textEl.value) {
+                alert(`⚠️ ไม่มีข้อมูลให้คัดลอก`);
+                return;
+            }
+            textEl.select();
+            document.execCommand("copy");
+            alert(`✅ คัดลอก ${labelName} ลง Clipboard เรียบร้อยแล้ว!`);
         }
     </script>
 </body>
