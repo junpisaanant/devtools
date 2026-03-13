@@ -5,7 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>⚡ Ultimate Data Modeler Pro</title>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+
     <style>
         :root {
             --primary: #2563eb; --primary-hover: #1d4ed8;
@@ -15,10 +20,67 @@
             --danger: #ef4444; --danger-hover: #dc2626;
             --info: #0ea5e9; --info-hover: #0284c7;
             --dark: #1e293b; --gray: #64748b;
-            --light-gray: #e2e8f0; --bg: #f1f5f9;
+            --light-gray: #e2e8f0; --bg: #f8f9fa;
+            /* สีสำหรับ Header สไตล์ Google */
+            --google-blue: #1a73e8;
+            --header-border: #dadce0;
         }
 
-        body { font-family: 'Prompt', sans-serif; background-color: var(--bg); color: var(--dark); margin: 0; padding: 30px 15px; }
+        /* เอา padding ของ body ออกเพื่อใส่ Header ให้เต็มจอ */
+        body { font-family: 'Prompt', sans-serif; background-color: var(--bg); color: var(--dark); margin: 0; padding: 0; }
+        
+        /* สไตล์ของ Top Header */
+        .app-header {
+            background-color: #ffffff;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            border-bottom: 1px solid var(--header-border);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            color: #5f6368;
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+
+        .back-btn:hover {
+            background-color: #f1f3f4;
+        }
+
+        .header-brand {
+            font-size: 20px;
+            font-family: 'Roboto', 'Prompt', sans-serif;
+            font-weight: 500;
+            color: #202124;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .header-brand .material-symbols-outlined {
+            color: var(--google-blue);
+            font-size: 28px;
+        }
+
+        .main-content { padding: 40px 15px; }
         .container { max-width: 1400px; margin: 0 auto; }
         h2 { text-align: center; color: var(--primary); margin-bottom: 30px; font-weight: 600; font-size: 28px; }
 
@@ -86,112 +148,127 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>⚡ Ultimate Data Modeler Pro</h2>
 
-        <div class="card" style="border-top-color: var(--warning);">
-            <h3 class="card-title">📝 1. ข้อมูลตั้งต้น (Input Data)</h3>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>ชื่อตาราง (Table Name):</label>
-                    <input type="text" id="tableName" placeholder="เช่น E4_EMERGENCY_REPAIR_EXPENSES">
-                </div>
-                <div class="form-group">
-                    <label>คำอธิบายตาราง (Table Comment):</label>
-                    <input type="text" id="tableComment" placeholder="เช่น ตารางหมวดค่าใช้จ่ายซ่อมฉุกเฉิน">
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label>นำเข้าข้อมูลตาราง (ก๊อปปี้จากเอกสาร หรือ วางรูปภาพ):</label>
-                <div class="paste-zone" id="pasteZone">
-                    <p>📸 <b>คลิกที่นี่ แล้วกด Ctrl+V เพื่อวางรูปภาพตาราง (OCR)</b></p>
-                    <img id="imagePreview" src="" alt="Image Preview">
-                    <button type="button" class="btn-ocr" onclick="extractTextFromImage()" id="btnOcr" style="display: none;">🔍 เริ่มอ่านตัวหนังสือจากรูปภาพ</button>
-                    <div id="ocrStatus"></div>
-                </div>
-                <textarea id="inputData" rows="6" placeholder="...หรือ คลุมดำตารางใน Word/Excel แล้ว Paste ลงที่นี่ได้เลยครับ..."></textarea>
-            </div>
-
-            <button class="btn-main" onclick="generateOutputs()">🚀 แปลงข้อมูลทั้งหมด (Generate All Scripts)</button>
+    <header class="app-header">
+        <div class="header-left">
+            <a href="index.html" class="back-btn" title="กลับหน้าหลัก">
+                <span class="material-symbols-outlined">arrow_back</span>
+            </a>
+            <a href="index.html" class="header-brand">
+                <span class="material-symbols-outlined header-brand-icon">developer_board</span>
+                Workspace
+            </a>
         </div>
+    </header>
 
-        <div class="card" style="border-top-color: var(--primary);">
-            <h3 class="card-title">🗄️ 2. Database Scripts (SQL)</h3>
-            <div class="output-grid">
-                <div class="form-group">
-                    <div class="output-header">
-                        <label>🏗️ CREATE TABLE</label>
-                        <button class="btn-action btn-download" onclick="downloadSQL()">💾 โหลด .sql</button>
-                    </div>
-                    <textarea id="outputSQL" rows="12" readonly></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <div class="output-header">
-                        <label>🔍 SELECT Query</label>
-                        <button class="btn-action btn-copy" onclick="copyText('outputSelect', 'SELECT Query')">📋 คัดลอก</button>
-                    </div>
-                    <textarea id="outputSelect" rows="12" readonly></textarea>
-                </div>
+    <main class="main-content">
+        <div class="container">
+            <h2>⚡ Ultimate Data Modeler Pro</h2>
 
-                <div class="form-group">
-                    <div class="output-header">
-                        <label>➕ INSERT Statement</label>
-                        <button class="btn-action btn-copy" onclick="copyText('outputInsert', 'INSERT Statement')">📋 คัดลอก</button>
+            <div class="card" style="border-top-color: var(--warning);">
+                <h3 class="card-title">📝 1. ข้อมูลตั้งต้น (Input Data)</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>ชื่อตาราง (Table Name):</label>
+                        <input type="text" id="tableName" placeholder="เช่น E4_EMERGENCY_REPAIR_EXPENSES">
                     </div>
-                    <textarea id="outputInsert" rows="12" readonly></textarea>
+                    <div class="form-group">
+                        <label>คำอธิบายตาราง (Table Comment):</label>
+                        <input type="text" id="tableComment" placeholder="เช่น ตารางหมวดค่าใช้จ่ายซ่อมฉุกเฉิน">
+                    </div>
                 </div>
 
                 <div class="form-group">
-                    <div class="output-header">
-                        <label>✏️ UPDATE Statement</label>
-                        <button class="btn-action btn-copy" onclick="copyText('outputUpdate', 'UPDATE Statement')">📋 คัดลอก</button>
+                    <label>นำเข้าข้อมูลตาราง (ก๊อปปี้จากเอกสาร หรือ วางรูปภาพ):</label>
+                    <div class="paste-zone" id="pasteZone">
+                        <p>📸 <b>คลิกที่นี่ แล้วกด Ctrl+V เพื่อวางรูปภาพตาราง (OCR)</b></p>
+                        <img id="imagePreview" src="" alt="Image Preview">
+                        <button type="button" class="btn-ocr" onclick="extractTextFromImage()" id="btnOcr" style="display: none;">🔍 เริ่มอ่านตัวหนังสือจากรูปภาพ</button>
+                        <div id="ocrStatus"></div>
                     </div>
-                    <textarea id="outputUpdate" rows="12" readonly></textarea>
+                    <textarea id="inputData" rows="6" placeholder="...หรือ คลุมดำตารางใน Word/Excel แล้ว Paste ลงที่นี่ได้เลยครับ..."></textarea>
+                </div>
+
+                <button class="btn-main" onclick="generateOutputs()">🚀 แปลงข้อมูลทั้งหมด (Generate All Scripts)</button>
+            </div>
+
+            <div class="card" style="border-top-color: var(--primary);">
+                <h3 class="card-title">🗄️ 2. Database Scripts (SQL)</h3>
+                <div class="output-grid">
+                    <div class="form-group">
+                        <div class="output-header">
+                            <label>🏗️ CREATE TABLE</label>
+                            <button class="btn-action btn-download" onclick="downloadSQL()">💾 โหลด .sql</button>
+                        </div>
+                        <textarea id="outputSQL" rows="12" readonly></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="output-header">
+                            <label>🔍 SELECT Query</label>
+                            <button class="btn-action btn-copy" onclick="copyText('outputSelect', 'SELECT Query')">📋 คัดลอก</button>
+                        </div>
+                        <textarea id="outputSelect" rows="12" readonly></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="output-header">
+                            <label>➕ INSERT Statement</label>
+                            <button class="btn-action btn-copy" onclick="copyText('outputInsert', 'INSERT Statement')">📋 คัดลอก</button>
+                        </div>
+                        <textarea id="outputInsert" rows="12" readonly></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="output-header">
+                            <label>✏️ UPDATE Statement</label>
+                            <button class="btn-action btn-copy" onclick="copyText('outputUpdate', 'UPDATE Statement')">📋 คัดลอก</button>
+                        </div>
+                        <textarea id="outputUpdate" rows="12" readonly></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="border-top-color: var(--danger);">
+                <h3 class="card-title">💻 3. App Code & Documentation</h3>
+                <div class="output-grid">
+                    <div class="form-group">
+                        <div class="output-header">
+                            <label>📄 XML (xs:element)</label>
+                            <button class="btn-action btn-copy" onclick="copyText('outputXML', 'XML')">📋 คัดลอก</button>
+                        </div>
+                        <textarea id="outputXML" rows="12" readonly></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="output-header">
+                            <label>☕ Java DTO (ResultSet)</label>
+                            <button class="btn-action btn-copy" onclick="copyText('outputJava', 'Java DTO')">📋 คัดลอก</button>
+                        </div>
+                        <textarea id="outputJava" rows="12" readonly></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="output-header">
+                            <label>📊 Draw.io (Visual ER Table) <span class="hint-blue" style="margin-left:5px;">(ก๊อปแล้วไป Ctrl+V ใน Draw.io ได้เลย)</span></label>
+                            <button class="btn-action btn-copy" onclick="copyRenderedTable('outputERTable', 'ER Table')">📋 คัดลอกตาราง</button>
+                        </div>
+                        <div id="outputERTable" class="er-visual-box">
+                            <div style="color: var(--gray); text-align: center; width: 100%; margin-top: 80px;">รูปแบบตาราง ER จะแสดงที่นี่...</div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="output-header">
+                            <label>📑 Markdown Table (สำหรับทำ Docs)</label>
+                            <button class="btn-action btn-copy" onclick="copyText('outputMarkdown', 'Markdown')">📋 คัดลอก</button>
+                        </div>
+                        <textarea id="outputMarkdown" rows="12" readonly></textarea>
+                    </div>
                 </div>
             </div>
         </div>
-
-        <div class="card" style="border-top-color: var(--danger);">
-            <h3 class="card-title">💻 3. App Code & Documentation</h3>
-            <div class="output-grid">
-                <div class="form-group">
-                    <div class="output-header">
-                        <label>📄 XML (xs:element)</label>
-                        <button class="btn-action btn-copy" onclick="copyText('outputXML', 'XML')">📋 คัดลอก</button>
-                    </div>
-                    <textarea id="outputXML" rows="12" readonly></textarea>
-                </div>
-
-                <div class="form-group">
-                    <div class="output-header">
-                        <label>☕ Java DTO (ResultSet)</label>
-                        <button class="btn-action btn-copy" onclick="copyText('outputJava', 'Java DTO')">📋 คัดลอก</button>
-                    </div>
-                    <textarea id="outputJava" rows="12" readonly></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <div class="output-header">
-                        <label>📊 Draw.io (Visual ER Table) <span class="hint-blue" style="margin-left:5px;">(ก๊อปแล้วไป Ctrl+V ใน Draw.io ได้เลย)</span></label>
-                        <button class="btn-action btn-copy" onclick="copyRenderedTable('outputERTable', 'ER Table')">📋 คัดลอกตาราง</button>
-                    </div>
-                    <div id="outputERTable" class="er-visual-box">
-                        <div style="color: var(--gray); text-align: center; width: 100%; margin-top: 80px;">รูปแบบตาราง ER จะแสดงที่นี่...</div>
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <div class="output-header">
-                        <label>📑 Markdown Table (สำหรับทำ Docs)</label>
-                        <button class="btn-action btn-copy" onclick="copyText('outputMarkdown', 'Markdown')">📋 คัดลอก</button>
-                    </div>
-                    <textarea id="outputMarkdown" rows="12" readonly></textarea>
-                </div>
-            </div>
-        </div>
-    </div>
+    </main>
 
     <script>
         let currentImageFile = null;
@@ -344,7 +421,6 @@
             let updateSetLines = []; let pkColumnName = null;
             let mdLines = ["| ลำดับ | ชื่อฟิลด์ | ชนิดข้อมูล | Nullable | คีย์ | คำอธิบาย |", "|---|---|---|---|---|---|"];
 
-            // สร้าง HTML Table สำหรับ Draw.io สไตล์ใหม่ (ปรับตัวหนาและขนาดให้เท่ากัน)
             let erHtml = `<table style="border-collapse: collapse; font-family: Tahoma, Arial, sans-serif; font-size: 14px; width: 100%; max-width: 400px; color: black; background: white;">`;
             
             erHtml += `<tr>
