@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>⚡ Smart Table to SQL & XML Generator</title>
+    <title>⚡ Ultimate Data Modeler (SQL, XML, Java)</title>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; color: #333; margin: 0; padding: 20px; }
@@ -11,7 +11,7 @@
         h2 { text-align: center; color: #2c3e50; margin-bottom: 25px; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
         
         .form-row { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
-        .form-group { flex: 1; min-width: 300px; }
+        .form-group { flex: 1; min-width: 48%; }
         
         label { display: block; font-weight: bold; margin-bottom: 8px; color: #2c3e50; }
         input[type="text"], textarea { width: 100%; padding: 12px; border: 1px solid #bdc3c7; border-radius: 6px; box-sizing: border-box; font-family: 'Courier New', Courier, monospace; font-size: 14px; }
@@ -23,13 +23,15 @@
         .btn-ocr:hover { background-color: #2ecc71; }
         .btn-ocr:disabled { background-color: #95a5a6; cursor: not-allowed; }
         
-        .btn-action { width: auto; font-size: 14px; padding: 6px 12px; margin-bottom: 0; }
+        .btn-action { width: auto; font-size: 14px; padding: 6px 12px; margin-bottom: 0; border-radius: 4px;}
         .btn-download { background-color: #8e44ad; }
         .btn-download:hover { background-color: #732d91; }
-        .btn-copy { background-color: #e67e22; }
-        .btn-copy:hover { background-color: #d35400; }
+        .btn-copy-xml { background-color: #e67e22; }
+        .btn-copy-xml:hover { background-color: #d35400; }
         .btn-copy-sql { background-color: #16a085; }
         .btn-copy-sql:hover { background-color: #1abc9c; }
+        .btn-copy-java { background-color: #c0392b; }
+        .btn-copy-java:hover { background-color: #a53125; }
         
         .hint { font-size: 13px; color: #e67e22; margin-top: 5px; font-weight: bold; }
         
@@ -44,7 +46,7 @@
 </head>
 <body>
     <div class="container">
-        <h2>⚡ Smart Table to SQL & XML Generator</h2>
+        <h2>⚡ Ultimate Data Modeler (SQL, XML, Java)</h2>
 
         <div class="form-row">
             <div class="form-group">
@@ -68,31 +70,41 @@
             <textarea id="inputData" rows="8" placeholder="คลุมดำตารางใน Word แล้ว Paste ลงที่นี่..."></textarea>
         </div>
 
-        <button onclick="generateOutputs()">⚙️ แปลงข้อมูลทั้งหมด (SQL, XML, SELECT)</button>
+        <button onclick="generateOutputs()">⚙️ แปลงข้อมูลทั้งหมด (SQL, SELECT, XML, Java DTO)</button>
 
         <div class="form-row">
             <div class="form-group">
                 <div class="output-header">
-                    <label>4. CREATE TABLE Script:</label>
+                    <label>📝 CREATE TABLE Script:</label>
                     <button class="btn-action btn-download" onclick="downloadSQL()">💾 โหลด .sql</button>
                 </div>
-                <textarea id="outputSQL" rows="18" readonly placeholder="ผลลัพธ์ SQL Script จะแสดงที่นี่..."></textarea>
+                <textarea id="outputSQL" rows="15" readonly placeholder="ผลลัพธ์ SQL Script จะแสดงที่นี่..."></textarea>
             </div>
             
             <div class="form-group">
                 <div class="output-header">
-                    <label>5. XML (xs:element):</label>
-                    <button class="btn-action btn-copy" onclick="copyText('outputXML', 'XML')">📋 คัดลอก XML</button>
-                </div>
-                <textarea id="outputXML" rows="18" readonly placeholder="ผลลัพธ์ XML จะแสดงที่นี่..."></textarea>
-            </div>
-            
-            <div class="form-group">
-                <div class="output-header">
-                    <label>6. SELECT Query:</label>
+                    <label>🔍 SELECT Query:</label>
                     <button class="btn-action btn-copy-sql" onclick="copyText('outputSelect', 'Query')">📋 คัดลอก Query</button>
                 </div>
-                <textarea id="outputSelect" rows="18" readonly placeholder="ผลลัพธ์ SELECT Query จะแสดงที่นี่..."></textarea>
+                <textarea id="outputSelect" rows="15" readonly placeholder="ผลลัพธ์ SELECT Query จะแสดงที่นี่..."></textarea>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <div class="output-header">
+                    <label>📄 XML (xs:element):</label>
+                    <button class="btn-action btn-copy-xml" onclick="copyText('outputXML', 'XML')">📋 คัดลอก XML</button>
+                </div>
+                <textarea id="outputXML" rows="15" readonly placeholder="ผลลัพธ์ XML จะแสดงที่นี่..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <div class="output-header">
+                    <label>☕ Java DTO Mapping (ResultSet):</label>
+                    <button class="btn-action btn-copy-java" onclick="copyText('outputJava', 'Java DTO')">📋 คัดลอก Java DTO</button>
+                </div>
+                <textarea id="outputJava" rows="15" readonly placeholder="ผลลัพธ์ Java DTO จะแสดงที่นี่..."></textarea>
             </div>
         </div>
     </div>
@@ -159,11 +171,16 @@
             }
         }
 
-        // --- Helper สำหรับแปลงชื่อคอลัมน์เป็น Camel Case (เช่น JN5_ID -> jn5Id) ---
+        // --- Helper: แปลงเป็น camelCase (สำหรับตัวแปร XML) ---
         function toCamelCase(str) {
             return str.toLowerCase().replace(/_([a-z0-9])/g, function (g) { 
                 return g[1].toUpperCase(); 
             });
+        }
+
+        // --- Helper: แปลงเป็น PascalCase (สำหรับ Method Setter ใน Java) ---
+        function toPascalCase(str) {
+            return str.toLowerCase().split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join('');
         }
 
         function generateOutputs() {
@@ -244,11 +261,10 @@
                 }
             }
 
-            // --- Logic สำหรับสร้าง Table Alias (เช่น E4_EMERGENCY_REPAIR_EXPENSES -> ERE) ---
+            // --- Logic สำหรับสร้าง Table Alias ---
             let tableWords = tableName.split('_');
-            let tableAlias = "T"; // ค่าเริ่มต้น
+            let tableAlias = "T";
             if (tableWords.length > 1) {
-                // ข้ามส่วนแรกไป (เช่น E4) แล้วเอาตัวอักษรตัวแรกของคำที่เหลือมาต่อกัน
                 tableAlias = tableWords.slice(1).map(w => w[0]).join('');
             } else if (tableName.length >= 2) {
                 tableAlias = tableName.substring(0, 2);
@@ -259,8 +275,11 @@
             let commentsSql = [`COMMENT ON TABLE ${tableName} IS '${tableComment}';`];
             let xmlOutput = [];
             let selectLines = [];
+            let javaDtoLines = []; // สำหรับเก็บผลลัพธ์ Java
 
             parsedCols.forEach(col => {
+                let isDateType = col.colType.includes('DATE') || col.colType.includes('TIMESTAMP');
+
                 // --- 1. SQL Process ---
                 columnsSql.push(`    ${col.colName.padEnd(30)} ${col.colType.padEnd(20)} ${col.isNull}`);
                 commentsSql.push(`COMMENT ON COLUMN ${tableName}.${col.colName.padEnd(30)} IS '${col.comment}';`);
@@ -276,20 +295,24 @@
                 let chkMatch = col.keys.match(/CHK\d*/);
                 if (chkMatch) chksSql.push(`ALTER TABLE ${tableName}\nADD CONSTRAINT ${tableName}_${chkMatch[0]} CHECK (${col.colName} IN ('Y','N'));`);
 
-                // --- 2. XML Process ---
-                let xmlName = toCamelCase(col.colName);
-                let isDateType = col.colType.includes('DATE') || col.colType.includes('TIMESTAMP');
-                let xmlType = isDateType ? 'xs:dateTime' : 'xs:string';
-                let minOccurs = (col.isNull === 'NOT NULL') ? '1' : '0';
-                let safeComment = col.comment.replace(/["']/g, ''); // กัน XML พัง
-                xmlOutput.push(`<xs:element name="${xmlName}" type="${xmlType}" minOccurs="${minOccurs}" sm:description="${safeComment}"/>`);
-
-                // --- 3. SELECT Query Process ---
+                // --- 2. SELECT Query Process ---
                 if (isDateType) {
                     selectLines.push(`    TO_CHAR(${tableAlias}.${col.colName}, 'YYYY-MM-DD HH24:MI:SS') AS ${col.colName}`);
                 } else {
                     selectLines.push(`    ${tableAlias}.${col.colName}`);
                 }
+
+                // --- 3. XML Process ---
+                let xmlName = toCamelCase(col.colName);
+                let xmlType = isDateType ? 'xs:dateTime' : 'xs:string';
+                let minOccurs = (col.isNull === 'NOT NULL') ? '1' : '0';
+                let safeComment = col.comment.replace(/["']/g, ''); 
+                xmlOutput.push(`<xs:element name="${xmlName}" type="${xmlType}" minOccurs="${minOccurs}" sm:description="${safeComment}"/>`);
+
+                // --- 4. JAVA DTO MAPPING Process ---
+                let javaSetterName = "set" + toPascalCase(col.colName);
+                let rsMethod = isDateType ? "getCalendar" : "getString"; // ถ้าเป็น Date ให้ใช้ getCalendar ตามรูปแบบของคุณ
+                javaDtoLines.push(`dto.${javaSetterName}(rs.${rsMethod}("${col.colName}"));`);
             });
 
             // Combine SQL
@@ -305,8 +328,9 @@
 
             // Set Outputs
             document.getElementById('outputSQL').value = finalScript;
-            document.getElementById('outputXML').value = xmlOutput.join("\n");
             document.getElementById('outputSelect').value = finalSelectQuery;
+            document.getElementById('outputXML').value = xmlOutput.join("\n");
+            document.getElementById('outputJava').value = javaDtoLines.join("\n");
         }
 
         // --- ฟังก์ชันดาวน์โหลด SQL ---
