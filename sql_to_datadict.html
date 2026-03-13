@@ -61,12 +61,11 @@
         
         .output-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(45%, 1fr)); gap: 25px; }
 
-        .datadict-box {
-            border: 1px solid var(--light-gray); border-radius: 8px; padding: 15px; 
-            background: white; overflow-x: auto; margin-bottom: 15px;
-        }
+        .datadict-box { border: 1px solid var(--light-gray); border-radius: 8px; padding: 15px; background: white; overflow-x: auto; margin-bottom: 15px; }
+        .er-visual-box { border: 1px solid var(--light-gray); border-radius: 8px; padding: 15px; background: white; overflow-y: auto; height: 215px; display: flex; justify-content: center; align-items: flex-start; }
         
         .hint { font-size: 13px; color: var(--gray); margin-top: 8px; }
+        .hint-blue { color: var(--info); font-weight: 500; font-size: 12px; }
     </style>
 </head>
 <body>
@@ -130,7 +129,7 @@
         </div>
 
         <div class="card" style="border-top-color: var(--danger);">
-            <h3 class="card-title">💻 4. Application Code (XML & Java)</h3>
+            <h3 class="card-title">💻 4. App Code & Documentation (รวม Draw.io)</h3>
             <div class="output-grid">
                 <div>
                     <div class="output-header">
@@ -147,6 +146,32 @@
                     </div>
                     <textarea id="outputJava" rows="12" readonly></textarea>
                 </div>
+
+                <div>
+                    <div class="output-header">
+                        <label>📊 Draw.io (Visual ER Table) <span class="hint-blue" style="margin-left:5px;">(ก๊อปแล้วไป Ctrl+V ใน Draw.io ได้เลย)</span></label>
+                        <button class="btn-action btn-copy" onclick="copyRenderedTable('outputERTable', 'ER Table')">📋 คัดลอกตาราง</button>
+                    </div>
+                    <div id="outputERTable" class="er-visual-box">
+                        <div style="color: var(--gray); text-align: center; width: 100%; margin-top: 80px;">รูปแบบตาราง ER จะแสดงที่นี่...</div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="output-header">
+                        <label>📊 Draw.io (Mermaid ERD) <span class="hint-blue" style="margin-left:5px;">(Insert -> Advanced -> Mermaid)</span></label>
+                        <button class="btn-action btn-copy" onclick="copyText('outputMermaid', 'Draw.io Code')">📋 คัดลอก</button>
+                    </div>
+                    <textarea id="outputMermaid" rows="12" readonly></textarea>
+                </div>
+
+                <div>
+                    <div class="output-header">
+                        <label>📑 Markdown Table (สำหรับทำ Docs)</label>
+                        <button class="btn-action btn-copy" onclick="copyText('outputMarkdown', 'Markdown')">📋 คัดลอก</button>
+                    </div>
+                    <textarea id="outputMarkdown" rows="12" readonly></textarea>
+                </div>
             </div>
         </div>
     </div>
@@ -162,15 +187,15 @@
                 return;
             }
 
-            // --- 1. สกัด Table Name ---
-            let tbMatch = sql.match(/CREATE\s+TABLE\s+(?:\"[^\"]+\"\.)?\"([A-Z0-9_]+)\"/i);
+            // 1. สกัด Table Name
+            let tbMatch = sql.match(/CREATE\s+(?:OR\s+REPLACE\s+)?TABLE\s+(?:\"[^\"]+\"\.)?\"([A-Z0-9_]+)\"/i) || sql.match(/CREATE\s+TABLE\s+(?:[A-Z0-9_]+\.)?([A-Z0-9_]+)/i);
             let tableName = tbMatch ? tbMatch[1].toUpperCase() : "UNKNOWN_TABLE";
 
-            // --- 2. สกัด Table Comment ---
+            // 2. สกัด Table Comment
             let tbCmMatch = sql.match(/COMMENT\s+ON\s+TABLE\s+(?:\"[^\"]+\"\.)?\"[A-Z0-9_]+\"\s+IS\s+'([^']+)'/i);
             let tableComment = tbCmMatch ? tbCmMatch[1] : "";
 
-            // --- 3. สกัด Column Comments ---
+            // 3. สกัด Column Comments
             let cMap = {};
             let cRegex = /COMMENT\s+ON\s+COLUMN\s+(?:\"[^\"]+\"\.)?\"[A-Z0-9_]+\"\.\"([A-Z0-9_]+)\"\s+IS\s+'([^']+)'/gi;
             let cMatch;
@@ -178,9 +203,8 @@
                 cMap[cMatch[1].toUpperCase()] = cMatch[2].trim();
             }
 
-            // --- 4. สกัด Constraints (Keys) ---
+            // 4. สกัด Constraints (Keys)
             let kMap = {}; 
-            // PK
             let pkRegex = /PRIMARY\s+KEY\s+\(\"([A-Z0-9_]+)\"\)/gi;
             let pkMatch;
             while ((pkMatch = pkRegex.exec(sql)) !== null) {
@@ -188,7 +212,6 @@
                 if(!kMap[col]) kMap[col] = [];
                 kMap[col].push("PK");
             }
-            // UK
             let ukRegex = /UNIQUE\s+\(([^)]+)\)/gi;
             let ukMatch; let uIdx = 1;
             while ((ukMatch = ukRegex.exec(sql)) !== null) {
@@ -202,7 +225,6 @@
                     uIdx++;
                 }
             }
-            // CHK
             let chkRegex = /CHECK\s+\(([A-Z0-9_]+)\s+IN/gi;
             let chkMatch; let cIdx = 1;
             while ((chkMatch = chkRegex.exec(sql)) !== null) {
@@ -211,7 +233,6 @@
                 kMap[col].push("CHK" + cIdx);
                 cIdx++;
             }
-            // FK (ถ้ามีในอนาคต)
             let fkRegex = /FOREIGN\s+KEY\s+\(\"([A-Z0-9_]+)\"\)\s+REFERENCES\s+(?:\"[^\"]+\"\.)?\"([A-Z0-9_]+)\"/gi;
             let fkMatch; let fIdx = 1; let refMap = {};
             while ((fkMatch = fkRegex.exec(sql)) !== null) {
@@ -223,7 +244,7 @@
                 fIdx++;
             }
 
-            // --- 5. สกัด Columns Definition ---
+            // 5. สกัด Columns Definition
             let lines = sql.split('\n');
             let parsedCols = [];
             let inTable = false;
@@ -233,7 +254,6 @@
                 if (line.match(/^COMMENT/i) || line.match(/^CREATE\s+OR\s+REPLACE/i)) { inTable = false; break; }
                 
                 if (inTable) {
-                    // ข้ามบรรทัดที่เป็นการกำหนด Constraint ในบล็อกตาราง
                     if (line.trim().match(/^CONSTRAINT/i) || line.trim().match(/^USING/i) || line.trim().match(/^STORAGE/i) || line.trim().match(/^TABLESPACE/i)) continue;
 
                     let colMatch = line.trim().match(/^\"([A-Z0-9_]+)\"\s+([A-Z0-9_]+(?:\s*\([^)]+\))?)/i);
@@ -241,9 +261,7 @@
                         let colName = colMatch[1].toUpperCase();
                         let rawType = colMatch[2].toUpperCase();
                         
-                        // Clean up Data Type (เช่น NUMBER(10,0) -> number(10))
                         let colType = rawType.replace(/,\s*0\)/, ')').replace(/\s*CHAR\)/i, ')').replace(/\s*BYTE\)/i, ')').toLowerCase();
-                        
                         let isNull = line.toUpperCase().includes("NOT NULL") ? "not null" : "null";
                         let keys = kMap[colName] ? kMap[colName].join(', ') : "";
                         let refTable = refMap[colName] || "";
@@ -254,18 +272,14 @@
                 }
             }
 
-            // --- 6. สร้าง Data Dictionary (HTML Table สำหรับ Word) ---
+            // 6. สร้าง Data Dictionary (HTML Table สำหรับ Word)
             let dictHtml = `<table style="border-collapse: collapse; width: 100%; font-family: 'Tahoma', sans-serif; font-size: 14pt; border: 1px solid black; color: black; background: white;">`;
-            
-            // Header: ชื่อตารางและคำอธิบาย
             dictHtml += `<tr>
                 <td colspan="7" style="border: 1px solid black; padding: 10px; background-color: #f2f2f2;">
                     <div style="font-weight: bold; margin-bottom: 5px;">ตาราง: ${tableName}</div>
                     <div>คำอธิบาย: ${tableComment}</div>
                 </td>
             </tr>`;
-            
-            // Header: หัวคอลัมน์
             dictHtml += `<tr style="background-color: #e6e6e6; text-align: center; font-weight: bold;">
                 <td style="border: 1px solid black; padding: 8px; width: 5%;">ลำดับ</td>
                 <td style="border: 1px solid black; padding: 8px; width: 20%;">ชื่อแอตทริบิวต์</td>
@@ -276,22 +290,7 @@
                 <td style="border: 1px solid black; padding: 8px; width: 10%;">ตารางอ้างอิง</td>
             </tr>`;
 
-            parsedCols.forEach((col, index) => {
-                let underline = col.keys.includes('PK') ? 'text-decoration: underline; font-weight: bold;' : '';
-                
-                dictHtml += `<tr>
-                    <td style="border: 1px solid black; padding: 6px; text-align: center;">${index + 1}.</td>
-                    <td style="border: 1px solid black; padding: 6px; ${underline}">${col.colName.toLowerCase()}</td>
-                    <td style="border: 1px solid black; padding: 6px;">${col.colType}</td>
-                    <td style="border: 1px solid black; padding: 6px; text-align: center;">${col.isNull}</td>
-                    <td style="border: 1px solid black; padding: 6px;">${col.comment}</td>
-                    <td style="border: 1px solid black; padding: 6px; text-align: center;">${col.keys}</td>
-                    <td style="border: 1px solid black; padding: 6px;">${col.refTable}</td>
-                </tr>`;
-            });
-            dictHtml += `</table>`;
-
-            // --- 7. สร้าง Scripts อื่นๆ (เหมือนเวอร์ชันก่อน) ---
+            // 7. Initialize ตัวแปรสำหรับสร้าง Script อื่นๆ
             let tableAlias = "T";
             let tableWords = tableName.split('_');
             if (tableWords.length > 1) tableAlias = tableWords.slice(1).map(w => w[0]).join('');
@@ -303,10 +302,37 @@
             let insertCols = []; let insertVals = [];
             let updateSetLines = []; let pkColumnName = null;
 
-            parsedCols.forEach(col => {
+            // ตัวแปรสำหรับ Draw.io (Mermaid) และ Markdown
+            let mermaidLines = ["erDiagram", `    ${tableName} {`];
+            let mdLines = ["| ลำดับ | ชื่อฟิลด์ | ชนิดข้อมูล | Nullable | คีย์ | คำอธิบาย |", "|---|---|---|---|---|---|"];
+            
+            // ตัวแปรสำหรับ Draw.io (Visual ER Table)
+            let erHtml = `<table style="border-collapse: collapse; font-family: Tahoma, Arial, sans-serif; font-size: 14px; width: 100%; max-width: 400px; color: black; background: white;">`;
+            erHtml += `<tr>
+                <th colspan="2" style="border: 1px solid black; padding: 6px; text-align: center; background-color: #ffffff; font-weight: bold; font-size: 14px;">
+                    <div style="margin-bottom: 2px;">${tableName}</div>
+                    <div style="font-weight: normal; font-size: 13px;">${tableComment}</div>
+                </th>
+            </tr>`;
+
+            // 8. ลูปสร้างข้อมูลทั้งหมด
+            parsedCols.forEach((col, index) => {
                 let isDateType = col.colType.includes('date') || col.colType.includes('timestamp');
                 let isDtm = col.colName.includes('DTM');
 
+                // Data Dictionary Word
+                let underline = col.keys.includes('PK') ? 'text-decoration: underline; font-weight: bold;' : '';
+                dictHtml += `<tr>
+                    <td style="border: 1px solid black; padding: 6px; text-align: center;">${index + 1}.</td>
+                    <td style="border: 1px solid black; padding: 6px; ${underline}">${col.colName.toLowerCase()}</td>
+                    <td style="border: 1px solid black; padding: 6px;">${col.colType}</td>
+                    <td style="border: 1px solid black; padding: 6px; text-align: center;">${col.isNull}</td>
+                    <td style="border: 1px solid black; padding: 6px;">${col.comment}</td>
+                    <td style="border: 1px solid black; padding: 6px; text-align: center;">${col.keys}</td>
+                    <td style="border: 1px solid black; padding: 6px;">${col.refTable}</td>
+                </tr>`;
+
+                // SQL
                 columnsSql.push(`    ${col.colName.padEnd(30)} ${col.colType.toUpperCase().padEnd(20)} ${col.isNull.toUpperCase()}`);
                 if (col.comment) commentsSql.push(`COMMENT ON COLUMN ${tableName}.${col.colName.padEnd(30)} IS '${col.comment}';`);
 
@@ -325,16 +351,40 @@
                 insertVals.push(`    ${bindVar}`);
                 if (!col.keys.includes("PK")) updateSetLines.push(`    ${col.colName} = ${bindVar}`);
 
+                // XML ล้าง Data Type
                 let xmlName = toCamelCase(col.colName);
                 let xmlType = isDateType ? 'xs:dateTime' : 'xs:string';
                 let minOccurs = (col.isNull === 'not null') ? '1' : '0';
-                let safeComment = col.comment.replace(/["']/g, ''); 
+                let safeComment = col.comment.replace(/["']/g, '').replace(/(VARCHAR2|NUMBER|CHAR|DATE)\s*(\([\d,\s]+\))?\s*(NOT\s*NULL|NULL)?/gi, '').trim(); 
                 xmlOutput.push(`<xs:element name="${xmlName}" type="${xmlType}" minOccurs="${minOccurs}" sm:description="${safeComment}"/>`);
 
+                // Java DTO
                 let javaSetterName = "set" + toPascalCase(col.colName);
                 let rsMethod = isDateType ? "getCalendar" : "getString"; 
                 javaDtoLines.push(`dto.${javaSetterName}(rs.${rsMethod}("${col.colName}"));`);
+
+                // Mermaid
+                let mermaidKey = col.keys.includes('PK') ? 'PK' : (col.keys.includes('FK') ? 'FK' : '');
+                let mermaidType = col.colType.split('(')[0].trim().toUpperCase(); 
+                mermaidLines.push(`        ${mermaidType} ${col.colName} ${mermaidKey} "${safeComment}"`);
+
+                // Markdown
+                mdLines.push(`| ${index + 1} | \`${col.colName}\` | \`${col.colType}\` | ${col.isNull} | ${col.keys} | ${safeComment} |`);
+
+                // Visual ER Table (Draw.io)
+                let keyTextArr = [];
+                if (col.keys.includes('PK')) keyTextArr.push('PK');
+                let keyText = keyTextArr.concat(col.keys.match(/[UF]\d*|CHK\d*/g) || []).join(', ');
+                let colNameDisp = col.keys.includes('PK') ? `<u><b>${col.colName.toLowerCase()}</b></u>` : col.colName.toLowerCase();
+                let borderBottom = (index === parsedCols.length - 1) ? "border-bottom: 1px solid black;" : "";
+                erHtml += `<tr>
+                    <td style="width: 25%; font-weight: bold; text-align: center; border-left: 1px solid black; border-right: 1px solid black; padding: 4px 10px; ${borderBottom}">${keyText}</td>
+                    <td style="border-right: 1px solid black; padding: 4px 10px; ${borderBottom}">${colNameDisp}</td>
+                </tr>`;
             });
+            dictHtml += `</table>`;
+            mermaidLines.push("    }");
+            erHtml += `</table>`;
 
             let finalScript = `CREATE SEQUENCE ${tableName}_SEQ START WITH 1 INCREMENT BY 1 NOMAXVALUE;\n\nCREATE TABLE ${tableName}\n(\n${columnsSql.join(",\n")}\n);\n\n-- Primary Key\n${pkSql}`;
             if (uksSql.length > 0) finalScript += `\n-- Unique Keys\n${uksSql.join("\n\n")}\n`;
@@ -346,7 +396,7 @@
             let updateWhere = pkColumnName ? `${pkColumnName} = :${pkColumnName}` : `[ระบุเงื่อนไข PK ที่นี่]`;
             let finalUpdateQuery = `UPDATE ${tableName} SET\n${updateSetLines.join(",\n")}\nWHERE ${updateWhere};`;
 
-            // --- 8. แสดงผลลัพธ์ ---
+            // --- 9. แสดงผลลัพธ์ ---
             document.getElementById('outputDataDict').innerHTML = dictHtml;
             document.getElementById('outputSQLClean').value = finalScript;
             document.getElementById('outputSelect').value = finalSelectQuery;
@@ -354,15 +404,17 @@
             document.getElementById('outputUpdate').value = finalUpdateQuery;
             document.getElementById('outputXML').value = xmlOutput.join("\n");
             document.getElementById('outputJava').value = javaDtoLines.join("\n");
+            document.getElementById('outputERTable').innerHTML = erHtml;
+            document.getElementById('outputMermaid').value = mermaidLines.join("\n");
+            document.getElementById('outputMarkdown').value = mdLines.join("\n");
             
             // เลื่อนจอไปที่ Data Dictionary
             window.scrollTo({ top: document.getElementById('outputDataDict').offsetTop - 100, behavior: 'smooth' });
         }
 
-        // --- Actions ---
         function copyRenderedTable(elementId, labelName) {
             const el = document.getElementById(elementId);
-            if (!el.innerHTML || el.innerHTML.includes("ตาราง Data Dictionary จะแสดงที่นี่")) {
+            if (!el.innerHTML || el.innerHTML.includes("ตาราง")) {
                 alert(`⚠️ ไม่มีข้อมูลให้คัดลอก กรุณากดปุ่มประมวลผลก่อนครับ`); return;
             }
             
@@ -375,7 +427,7 @@
             sel.removeAllRanges(); 
             
             const btn = event.currentTarget; const originalText = btn.innerHTML;
-            btn.innerHTML = `✅ คัดลอกแล้ว (กด Ctrl+V วางใน Word ได้เลย!)`; btn.style.backgroundColor = 'var(--success)';
+            btn.innerHTML = `✅ คัดลอกแล้ว!`; btn.style.backgroundColor = 'var(--success)';
             setTimeout(() => { btn.innerHTML = originalText; btn.style.backgroundColor = ''; }, 3000);
         }
 
