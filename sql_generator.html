@@ -8,31 +8,18 @@
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #2563eb;
-            --primary-hover: #1d4ed8;
+            --primary: #2563eb; --primary-hover: #1d4ed8;
             --secondary: #f8fafc;
-            --success: #10b981;
-            --success-hover: #059669;
-            --warning: #f59e0b;
-            --warning-hover: #d97706;
-            --danger: #ef4444;
-            --danger-hover: #dc2626;
-            --dark: #1e293b;
-            --gray: #64748b;
-            --light-gray: #e2e8f0;
-            --bg: #f1f5f9;
+            --success: #10b981; --success-hover: #059669;
+            --warning: #f59e0b; --warning-hover: #d97706;
+            --danger: #ef4444; --danger-hover: #dc2626;
+            --info: #0ea5e9; --info-hover: #0284c7;
+            --dark: #1e293b; --gray: #64748b;
+            --light-gray: #e2e8f0; --bg: #f1f5f9;
         }
 
-        body { 
-            font-family: 'Prompt', sans-serif; 
-            background-color: var(--bg); 
-            color: var(--dark); 
-            margin: 0; 
-            padding: 30px 15px; 
-        }
-
-        .container { max-width: 1300px; margin: 0 auto; }
-
+        body { font-family: 'Prompt', sans-serif; background-color: var(--bg); color: var(--dark); margin: 0; padding: 30px 15px; }
+        .container { max-width: 1400px; margin: 0 auto; }
         h2 { text-align: center; color: var(--primary); margin-bottom: 30px; font-weight: 600; font-size: 28px; }
 
         .card {
@@ -41,10 +28,7 @@
             margin-bottom: 25px; border-top: 4px solid var(--primary);
         }
 
-        .card-title {
-            font-size: 18px; font-weight: 600; color: var(--dark); margin-top: 0; margin-bottom: 20px;
-            display: flex; align-items: center; gap: 10px;
-        }
+        .card-title { font-size: 18px; font-weight: 600; color: var(--dark); margin-top: 0; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
 
         .form-row { display: flex; gap: 20px; margin-bottom: 15px; flex-wrap: wrap; }
         .form-group { flex: 1; min-width: 300px; }
@@ -56,19 +40,12 @@
             border-radius: 8px; box-sizing: border-box; font-family: 'Courier New', Courier, monospace; 
             font-size: 14px; background-color: var(--secondary); transition: all 0.3s ease;
         }
-
         input[type="text"] { font-family: 'Prompt', sans-serif; }
-        
-        input[type="text"]:focus, textarea:focus { 
-            outline: none; border-color: var(--primary); 
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2); background-color: #ffffff;
-        }
+        input[type="text"]:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2); background-color: #ffffff; }
         
         .btn-main { 
-            background-color: var(--primary); color: white; padding: 15px 20px; 
-            border: none; border-radius: 8px; cursor: pointer; font-size: 18px; 
-            font-weight: 600; width: 100%; transition: all 0.3s; 
-            box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2); font-family: 'Prompt', sans-serif;
+            background-color: var(--primary); color: white; padding: 15px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 18px; 
+            font-weight: 600; width: 100%; transition: all 0.3s; box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2); font-family: 'Prompt', sans-serif;
         }
         .btn-main:hover { background-color: var(--primary-hover); transform: translateY(-2px); }
         
@@ -87,11 +64,9 @@
         .btn-download:hover { background-color: var(--success-hover); }
         
         .hint { font-size: 13px; color: var(--gray); margin-top: 8px; }
+        .hint-blue { color: var(--info); font-weight: 500; font-size: 12px; }
         
-        .paste-zone { 
-            border: 2px dashed #94a3b8; border-radius: 10px; padding: 30px 20px; 
-            text-align: center; background-color: #f8fafc; margin-bottom: 15px; transition: all 0.3s;
-        }
+        .paste-zone { border: 2px dashed #94a3b8; border-radius: 10px; padding: 30px 20px; text-align: center; background-color: #f8fafc; margin-bottom: 15px; transition: all 0.3s; }
         .paste-zone:hover { background-color: #f1f5f9; border-color: var(--primary);}
         .paste-zone p { margin: 0; color: var(--gray); font-size: 15px;}
         
@@ -102,6 +77,12 @@
         .output-header label { margin-bottom: 0; font-size: 15px; color: var(--primary);}
         
         .output-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(45%, 1fr)); gap: 25px; }
+
+        .er-visual-box {
+            border: 1px solid var(--light-gray); border-radius: 8px; padding: 15px; 
+            background: white; overflow-y: auto; height: 215px;
+            display: flex; justify-content: center; align-items: flex-start;
+        }
     </style>
 </head>
 <body>
@@ -122,7 +103,7 @@
             </div>
 
             <div class="form-group">
-                <label>นำเข้าข้อมูลตาราง (วางข้อความ หรือ วางรูปภาพ):</label>
+                <label>นำเข้าข้อมูลตาราง (ก๊อปปี้จากเอกสาร หรือ วางรูปภาพ):</label>
                 <div class="paste-zone" id="pasteZone">
                     <p>📸 <b>คลิกที่นี่ แล้วกด Ctrl+V เพื่อวางรูปภาพตาราง (OCR)</b></p>
                     <img id="imagePreview" src="" alt="Image Preview">
@@ -130,7 +111,6 @@
                     <div id="ocrStatus"></div>
                 </div>
                 <textarea id="inputData" rows="6" placeholder="...หรือ คลุมดำตารางใน Word/Excel แล้ว Paste ลงที่นี่ได้เลยครับ..."></textarea>
-                <div class="hint">💡 แนะนำ: การก๊อปปี้ข้อความจาก Word มาวางโดยตรง จะได้ความแม่นยำสูงที่สุดครับ</div>
             </div>
 
             <button class="btn-main" onclick="generateOutputs()">🚀 แปลงข้อมูลทั้งหมด (Generate All Scripts)</button>
@@ -144,7 +124,7 @@
                         <label>🏗️ CREATE TABLE</label>
                         <button class="btn-action btn-download" onclick="downloadSQL()">💾 โหลด .sql</button>
                     </div>
-                    <textarea id="outputSQL" rows="12" readonly placeholder="คำสั่งสร้างตารางจะแสดงที่นี่..."></textarea>
+                    <textarea id="outputSQL" rows="12" readonly></textarea>
                 </div>
                 
                 <div class="form-group">
@@ -152,7 +132,7 @@
                         <label>🔍 SELECT Query</label>
                         <button class="btn-action btn-copy" onclick="copyText('outputSelect', 'SELECT Query')">📋 คัดลอก</button>
                     </div>
-                    <textarea id="outputSelect" rows="12" readonly placeholder="คำสั่ง SELECT จะแสดงที่นี่..."></textarea>
+                    <textarea id="outputSelect" rows="12" readonly></textarea>
                 </div>
 
                 <div class="form-group">
@@ -160,7 +140,7 @@
                         <label>➕ INSERT Statement</label>
                         <button class="btn-action btn-copy" onclick="copyText('outputInsert', 'INSERT Statement')">📋 คัดลอก</button>
                     </div>
-                    <textarea id="outputInsert" rows="12" readonly placeholder="คำสั่ง INSERT จะแสดงที่นี่..."></textarea>
+                    <textarea id="outputInsert" rows="12" readonly></textarea>
                 </div>
 
                 <div class="form-group">
@@ -168,20 +148,20 @@
                         <label>✏️ UPDATE Statement</label>
                         <button class="btn-action btn-copy" onclick="copyText('outputUpdate', 'UPDATE Statement')">📋 คัดลอก</button>
                     </div>
-                    <textarea id="outputUpdate" rows="12" readonly placeholder="คำสั่ง UPDATE จะแสดงที่นี่..."></textarea>
+                    <textarea id="outputUpdate" rows="12" readonly></textarea>
                 </div>
             </div>
         </div>
 
         <div class="card" style="border-top-color: var(--danger);">
-            <h3 class="card-title">💻 3. Application Code (XML & Java)</h3>
+            <h3 class="card-title">💻 3. App Code & Documentation</h3>
             <div class="output-grid">
                 <div class="form-group">
                     <div class="output-header">
                         <label>📄 XML (xs:element)</label>
                         <button class="btn-action btn-copy" onclick="copyText('outputXML', 'XML')">📋 คัดลอก</button>
                     </div>
-                    <textarea id="outputXML" rows="12" readonly placeholder="รูปแบบ XML จะแสดงที่นี่..."></textarea>
+                    <textarea id="outputXML" rows="12" readonly></textarea>
                 </div>
 
                 <div class="form-group">
@@ -189,7 +169,25 @@
                         <label>☕ Java DTO (ResultSet)</label>
                         <button class="btn-action btn-copy" onclick="copyText('outputJava', 'Java DTO')">📋 คัดลอก</button>
                     </div>
-                    <textarea id="outputJava" rows="12" readonly placeholder="รูปแบบการ Mapping Java จะแสดงที่นี่..."></textarea>
+                    <textarea id="outputJava" rows="12" readonly></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <div class="output-header">
+                        <label>📊 Draw.io (Visual ER Table) <span class="hint-blue" style="margin-left:5px;">(ก๊อปแล้วไป Ctrl+V ใน Draw.io ได้เลย)</span></label>
+                        <button class="btn-action btn-copy" onclick="copyRenderedTable('outputERTable', 'ER Table')">📋 คัดลอกตาราง</button>
+                    </div>
+                    <div id="outputERTable" class="er-visual-box">
+                        <div style="color: var(--gray); text-align: center; width: 100%; margin-top: 80px;">รูปแบบตาราง ER จะแสดงที่นี่...</div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <div class="output-header">
+                        <label>📑 Markdown Table (สำหรับทำ Docs)</label>
+                        <button class="btn-action btn-copy" onclick="copyText('outputMarkdown', 'Markdown')">📋 คัดลอก</button>
+                    </div>
+                    <textarea id="outputMarkdown" rows="12" readonly></textarea>
                 </div>
             </div>
         </div>
@@ -255,12 +253,8 @@
             }
         }
 
-        function toCamelCase(str) {
-            return str.toLowerCase().replace(/_([a-z0-9])/g, function (g) { return g[1].toUpperCase(); });
-        }
-        function toPascalCase(str) {
-            return str.toLowerCase().split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join('');
-        }
+        function toCamelCase(str) { return str.toLowerCase().replace(/_([a-z0-9])/g, function (g) { return g[1].toUpperCase(); }); }
+        function toPascalCase(str) { return str.toLowerCase().split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(''); }
 
         function generateOutputs() {
             const tableName = document.getElementById('tableName').value.trim().toUpperCase();
@@ -340,87 +334,81 @@
 
             let tableWords = tableName.split('_');
             let tableAlias = "T";
-            if (tableWords.length > 1) {
-                tableAlias = tableWords.slice(1).map(w => w[0]).join('');
-            } else if (tableName.length >= 2) {
-                tableAlias = tableName.substring(0, 2);
-            }
+            if (tableWords.length > 1) tableAlias = tableWords.slice(1).map(w => w[0]).join('');
+            else if (tableName.length >= 2) tableAlias = tableName.substring(0, 2);
 
             let columnsSql = []; let pkSql = ""; let fksSql = []; let uksSql = []; let chksSql = [];
             let commentsSql = [`COMMENT ON TABLE ${tableName} IS '${tableComment}';`];
             let xmlOutput = []; let selectLines = []; let javaDtoLines = []; 
             let insertCols = []; let insertVals = [];
             let updateSetLines = []; let pkColumnName = null;
+            let mdLines = ["| ลำดับ | ชื่อฟิลด์ | ชนิดข้อมูล | Nullable | คีย์ | คำอธิบาย |", "|---|---|---|---|---|---|"];
 
-            parsedCols.forEach(col => {
+            // สร้าง HTML Table สำหรับ Draw.io สไตล์ใหม่ (ปรับตัวหนาและขนาดให้เท่ากัน)
+            let erHtml = `<table style="border-collapse: collapse; font-family: Tahoma, Arial, sans-serif; font-size: 14px; width: 100%; max-width: 400px; color: black; background: white;">`;
+            
+            erHtml += `<tr>
+                <th colspan="2" style="border: 1px solid black; padding: 6px; text-align: center; background-color: #ffffff; font-weight: bold; font-size: 14px;">
+                    <div style="margin-bottom: 2px;">${tableName}</div>
+                    <div>${tableComment}</div>
+                </th>
+            </tr>`;
+
+            parsedCols.forEach((col, index) => {
                 let isDateType = col.colType.includes('DATE') || col.colType.includes('TIMESTAMP');
-                let isDtm = col.colName.includes('DTM'); // เช็คว่าชื่อคอลัมน์มีคำว่า DTM หรือไม่
+                let isDtm = col.colName.includes('DTM');
 
-                // 1. CREATE TABLE
                 columnsSql.push(`    ${col.colName.padEnd(30)} ${col.colType.padEnd(20)} ${col.isNull}`);
                 commentsSql.push(`COMMENT ON COLUMN ${tableName}.${col.colName.padEnd(30)} IS '${col.comment}';`);
 
-                if (col.keys.includes("PK")) {
-                    pkSql = `ALTER TABLE ${tableName}\nADD CONSTRAINT ${tableName}_PK PRIMARY KEY (${col.colName});\n`;
-                    pkColumnName = col.colName;
-                }
-                
+                if (col.keys.includes("PK")) { pkSql = `ALTER TABLE ${tableName}\nADD CONSTRAINT ${tableName}_PK PRIMARY KEY (${col.colName});\n`; pkColumnName = col.colName; }
                 let fkMatch = col.keys.match(/FK\d*/);
-                if (fkMatch && col.refTable) {
-                    let refClean = col.refTable.split('.')[0]; 
-                    fksSql.push(`ALTER TABLE ${tableName}\nADD CONSTRAINT ${tableName}_${fkMatch[0]} FOREIGN KEY (${col.colName}) REFERENCES ${refClean} (${col.colName});`);
-                }
+                if (fkMatch && col.refTable) { fksSql.push(`ALTER TABLE ${tableName}\nADD CONSTRAINT ${tableName}_${fkMatch[0]} FOREIGN KEY (${col.colName}) REFERENCES ${col.refTable.split('.')[0]} (${col.colName});`); }
                 let uMatch = col.keys.match(/U\d*/);
                 if (uMatch) uksSql.push(`ALTER TABLE ${tableName}\nADD CONSTRAINT ${tableName}_${uMatch[0]} UNIQUE (${col.colName});`);
                 let chkMatch = col.keys.match(/CHK\d*/);
                 if (chkMatch) chksSql.push(`ALTER TABLE ${tableName}\nADD CONSTRAINT ${tableName}_${chkMatch[0]} CHECK (${col.colName} IN ('Y','N'));`);
 
-                // 2. SELECT
-                if (isDateType) { 
-                    selectLines.push(`    TO_CHAR(${tableAlias}.${col.colName}, 'YYYY-MM-DD HH24:MI:SS') AS ${col.colName}`); 
-                } else { 
-                    selectLines.push(`    ${tableAlias}.${col.colName}`); 
-                }
+                if (isDateType) selectLines.push(`    TO_CHAR(${tableAlias}.${col.colName}, 'YYYY-MM-DD HH24:MI:SS') AS ${col.colName}`); 
+                else selectLines.push(`    ${tableAlias}.${col.colName}`); 
 
-                // --- เตรียมค่า Bind Variable สำหรับ INSERT & UPDATE ---
                 let bindVar = `:${col.colName}`;
-                if (isDateType) {
-                    if (isDtm) {
-                        bindVar = `TO_DATE(:${col.colName}, 'YYYY-MM-DD HH24:MI:SS')`;
-                    } else {
-                        bindVar = `TO_DATE(:${col.colName}, 'YYYY-MM-DD')`;
-                    }
-                }
-
-                // 3. INSERT
+                if (isDateType) bindVar = isDtm ? `TO_DATE(:${col.colName}, 'YYYY-MM-DD HH24:MI:SS')` : `TO_DATE(:${col.colName}, 'YYYY-MM-DD')`;
                 insertCols.push(`    ${col.colName}`);
                 insertVals.push(`    ${bindVar}`);
+                if (!col.keys.includes("PK")) updateSetLines.push(`    ${col.colName} = ${bindVar}`);
 
-                // 4. UPDATE (ไม่เอา PK มา set)
-                if (!col.keys.includes("PK")) {
-                    updateSetLines.push(`    ${col.colName} = ${bindVar}`);
-                }
-
-                // 5. XML
                 let xmlName = toCamelCase(col.colName);
                 let xmlType = isDateType ? 'xs:dateTime' : 'xs:string';
                 let minOccurs = (col.isNull === 'NOT NULL') ? '1' : '0';
-                
-                // ล้างพวก Data Type กับ Not Null ที่ติดมาใน Comment
                 let safeComment = col.comment.replace(/["']/g, ''); 
                 safeComment = safeComment.replace(/(VARCHAR2|NUMBER|CHAR|DATE)\s*(\([\d,\s]+\))?\s*(NOT\s*NULL|NULL)?/gi, '').trim();
-
                 xmlOutput.push(`<xs:element name="${xmlName}" type="${xmlType}" minOccurs="${minOccurs}" sm:description="${safeComment}"/>`);
 
-                // 6. JAVA DTO
                 let javaSetterName = "set" + toPascalCase(col.colName);
                 let rsMethod = isDateType ? "getCalendar" : "getString"; 
                 javaDtoLines.push(`dto.${javaSetterName}(rs.${rsMethod}("${col.colName}"));`);
-            });
+                
+                let keysArr = [];
+                if (col.keys.includes('PK')) keysArr.push('PK');
+                let uMatches = col.keys.match(/U\d*/g); if (uMatches) keysArr.push(...uMatches);
+                let fkMatches = col.keys.match(/FK\d*/g); if (fkMatches) keysArr.push(...fkMatches);
+                let chkMatches = col.keys.match(/CHK\d*/g); if (chkMatches) keysArr.push(...chkMatches);
+                let keyText = keysArr.join(', ');
+                
+                let colNameDisp = col.keys.includes('PK') ? `<u><b>${col.colName.toLowerCase()}</b></u>` : col.colName.toLowerCase();
+                let borderBottom = (index === parsedCols.length - 1) ? "border-bottom: 1px solid black;" : "";
 
-            // Compile Outputs
-            let finalScript = `CREATE SEQUENCE ${tableName}_SEQ START WITH 1 INCREMENT BY 1 NOMAXVALUE;\n\n`;
-            finalScript += `CREATE TABLE ${tableName}\n(\n${columnsSql.join(",\n")}\n);\n\n-- Primary Key\n${pkSql}`;
+                erHtml += `<tr>
+                    <td style="width: 25%; font-weight: bold; text-align: center; border-left: 1px solid black; border-right: 1px solid black; padding: 4px 10px; ${borderBottom}">${keyText}</td>
+                    <td style="border-right: 1px solid black; padding: 4px 10px; ${borderBottom}">${colNameDisp}</td>
+                </tr>`;
+
+                mdLines.push(`| ${index + 1} | \`${col.colName}\` | \`${col.colType}\` | ${col.isNull} | ${col.keys} | ${safeComment} |`);
+            });
+            erHtml += `</table>`;
+
+            let finalScript = `CREATE SEQUENCE ${tableName}_SEQ START WITH 1 INCREMENT BY 1 NOMAXVALUE;\n\nCREATE TABLE ${tableName}\n(\n${columnsSql.join(",\n")}\n);\n\n-- Primary Key\n${pkSql}`;
             if (fksSql.length > 0) finalScript += `\n-- Foreign Keys\n${fksSql.join("\n\n")}\n`;
             if (uksSql.length > 0) finalScript += `\n-- Unique Keys\n${uksSql.join("\n\n")}\n`;
             if (chksSql.length > 0) finalScript += `\n-- Check Constraints\n${chksSql.join("\n\n")}\n`;
@@ -428,19 +416,20 @@
 
             let finalSelectQuery = `SELECT\n${selectLines.join(",\n")}\nFROM\n    ${tableName} ${tableAlias};`;
             let finalInsertQuery = `INSERT INTO ${tableName} (\n${insertCols.join(",\n")}\n) VALUES (\n${insertVals.join(",\n")}\n);`;
-            
             let updateWhere = pkColumnName ? `${pkColumnName} = :${pkColumnName}` : `[ระบุเงื่อนไข PK ที่นี่]`;
             let finalUpdateQuery = `UPDATE ${tableName} SET\n${updateSetLines.join(",\n")}\nWHERE ${updateWhere};`;
 
-            // Set Data
             document.getElementById('outputSQL').value = finalScript;
             document.getElementById('outputSelect').value = finalSelectQuery;
             document.getElementById('outputInsert').value = finalInsertQuery;
             document.getElementById('outputUpdate').value = finalUpdateQuery;
             document.getElementById('outputXML').value = xmlOutput.join("\n");
             document.getElementById('outputJava').value = javaDtoLines.join("\n");
+            document.getElementById('outputMarkdown').value = mdLines.join("\n");
             
-            window.scrollTo({ top: document.getElementById('outputSQL').offsetTop - 50, behavior: 'smooth' });
+            document.getElementById('outputERTable').innerHTML = erHtml;
+            
+            window.scrollTo({ top: document.getElementById('outputSQL').offsetTop - 100, behavior: 'smooth' });
         }
 
         function downloadSQL() {
@@ -449,30 +438,36 @@
             if (!sqlText) { alert("⚠️ ไม่มีข้อมูลให้ดาวน์โหลด"); return; }
             const blob = new Blob([sqlText], { type: 'text/sql;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${tableName}.sql`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+            const a = document.createElement('a'); a.href = url; a.download = `${tableName}.sql`;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
         }
 
         function copyText(elementId, labelName) {
             const textEl = document.getElementById(elementId);
             if (!textEl.value) { alert(`⚠️ ไม่มีข้อมูลให้คัดลอก`); return; }
-            textEl.select();
-            document.execCommand("copy");
-            window.getSelection().removeAllRanges();
+            textEl.select(); document.execCommand("copy"); window.getSelection().removeAllRanges();
+            const btn = event.currentTarget; const originalText = btn.innerHTML;
+            btn.innerHTML = `✅ คัดลอกแล้ว`; btn.style.backgroundColor = 'var(--success)';
+            setTimeout(() => { btn.innerHTML = originalText; btn.style.backgroundColor = ''; }, 2000);
+        }
+        
+        function copyRenderedTable(elementId, labelName) {
+            const el = document.getElementById(elementId);
+            if (!el.innerHTML || el.innerHTML.includes("รูปแบบตาราง ER จะแสดงที่นี่")) {
+                alert(`⚠️ ไม่มีข้อมูลให้คัดลอก กรุณากดปุ่มแปลงข้อมูลก่อนครับ`); return;
+            }
             
-            const btn = event.currentTarget;
-            const originalText = btn.innerHTML;
-            btn.innerHTML = `✅ คัดลอกแล้ว`;
-            btn.style.backgroundColor = 'var(--success)';
-            setTimeout(() => {
-                btn.innerHTML = originalText;
-                btn.style.backgroundColor = '';
-            }, 2000);
+            const range = document.createRange();
+            range.selectNodeContents(el);
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+            document.execCommand("copy");
+            sel.removeAllRanges(); 
+            
+            const btn = event.currentTarget; const originalText = btn.innerHTML;
+            btn.innerHTML = `✅ คัดลอกแล้ว (วางใน Draw.io ได้เลย!)`; btn.style.backgroundColor = 'var(--success)';
+            setTimeout(() => { btn.innerHTML = originalText; btn.style.backgroundColor = ''; }, 3000);
         }
     </script>
 </body>
