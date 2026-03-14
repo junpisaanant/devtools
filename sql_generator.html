@@ -145,9 +145,43 @@
             background: white; overflow-y: auto; height: 215px;
             display: flex; justify-content: center; align-items: flex-start;
         }
+
+        /* --- CSS สำหรับ Modal Migrate --- */
+        .btn-migrate { background-color: #8b5cf6; color: white; padding: 15px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 18px; font-weight: 600; width: 100%; transition: all 0.3s; box-shadow: 0 4px 6px rgba(139, 92, 246, 0.2); font-family: 'Prompt', sans-serif; margin-top: 15px;}
+        .btn-migrate:hover { background-color: #7c3aed; transform: translateY(-2px); }
+        .btn-danger { background-color: var(--danger); color: white; }
+        .btn-danger:hover { background-color: var(--danger-hover); }
+
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.7); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
+        .modal-content { background: white; padding: 30px; border-radius: 16px; width: 90%; max-width: 800px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); animation: modalFadeIn 0.3s ease; max-height: 90vh; overflow-y: auto; }
+        @keyframes modalFadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
+
+    <div id="migrateModal" class="modal-overlay">
+        <div class="modal-content">
+            <h2 style="margin-top:0; color:#8b5cf6; display:flex; align-items:center; gap:10px; font-size: 24px;">
+                <span class="material-symbols-outlined">move_up</span> นำเข้าข้อมูลตารางเก่า (Source Table)
+            </h2>
+            <p style="color:#64748b; margin-bottom:20px;">วางข้อมูล Data Dictionary ของตารางต้นทาง เพื่อให้ระบบช่วยจับคู่คอลัมน์ (Mapping) ให้อัตโนมัติ</p>
+
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label>ชื่อตารางเก่า (Old Table Name)</label>
+                <input type="text" id="oldTableName" placeholder="เช่น OLD_E8_EQUIP_DISPOSAL">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label>วางข้อมูล Data Dictionary ตารางเก่า (ก๊อปปี้จาก Excel/Word)</label>
+                <textarea id="oldDataDict" rows="8" placeholder="ลำดับ | ชื่อแอตทริบิวต์ | ชนิดข้อมูล | ..."></textarea>
+            </div>
+
+            <div class="form-row" style="margin-top:25px; margin-bottom: 0;">
+                <button class="btn-main btn-danger" style="width: auto; flex: 1;" onclick="closeMigrateModal()">ยกเลิก</button>
+                <button class="btn-main" style="width: auto; flex: 2; background-color: #8b5cf6;" onclick="processMigrateScript()">✨ สร้าง Migrate Script</button>
+            </div>
+        </div>
+    </div>
 
     <header class="app-header">
         <div class="header-left">
@@ -267,10 +301,25 @@
                     </div>
                 </div>
             </div>
+
+            <div class="card" style="border-top-color: #8b5cf6;">
+                <h3 class="card-title">🚀 4. Data Migration Script</h3>
+                <button class="btn-migrate" onclick="openMigrateModal()"><span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 8px;">auto_mode</span> เปิดหน้าต่างสร้าง Migrate Script (Data Mapping)</button>
+                
+                <div id="migrateResultBlock" style="display: none; margin-top: 25px;">
+                    <div class="output-header">
+                        <label style="color: #8b5cf6;">📦 Migrate Script (INSERT INTO ... SELECT)</label>
+                        <button class="btn-action btn-copy" onclick="copyText('outputMigrate', 'Migrate Script')">📋 คัดลอก</button>
+                    </div>
+                    <textarea id="outputMigrate" rows="15" readonly style="background-color: #f5f3ff; border-color: #ddd6fe;"></textarea>
+                </div>
+            </div>
+
         </div>
     </main>
 
     <script>
+        // ระบบ OCR ดั้งเดิม (ไม่ถูกเปลี่ยนแปลง)
         let currentImageFile = null;
 
         document.addEventListener('paste', function (e) {
@@ -333,6 +382,7 @@
         function toCamelCase(str) { return str.toLowerCase().replace(/_([a-z0-9])/g, function (g) { return g[1].toUpperCase(); }); }
         function toPascalCase(str) { return str.toLowerCase().split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(''); }
 
+        // ระบบ Generator ดั้งเดิม (ไม่ถูกเปลี่ยนแปลง)
         function generateOutputs() {
             const tableName = document.getElementById('tableName').value.trim().toUpperCase();
             const tableComment = document.getElementById('tableComment').value.trim();
@@ -359,7 +409,9 @@
 
                 let colName = parts[0].toUpperCase().replace(/[^A-Z0-9_]/g, '');
 
-                if (/^[A-Z_][A-Z0-9_]*$/.test(colName) && parts.length > 1) {
+                let hasDataType = /(VARCHAR2|NUMBER|CHAR|DATE|TIMESTAMP|BLOB|CLOB|FLOAT|INTEGER)/i.test(normLine.toUpperCase());
+
+                if (/^[A-Z_][A-Z0-9_]*$/.test(colName) && parts.length > 1 && hasDataType) {
                     parts.shift(); 
                     let remaining = parts.join(' ');
                     let colType = ""; let isNull = "NULL"; let keys = ""; let refTable = "";
@@ -544,6 +596,122 @@
             const btn = event.currentTarget; const originalText = btn.innerHTML;
             btn.innerHTML = `✅ คัดลอกแล้ว (วางใน Draw.io ได้เลย!)`; btn.style.backgroundColor = 'var(--success)';
             setTimeout(() => { btn.innerHTML = originalText; btn.style.backgroundColor = ''; }, 3000);
+        }
+
+        // ==========================================
+        // ฟังก์ชันระบบ Migrate Script (ดึง MAP_ID = PK เก่า)
+        // ==========================================
+        
+        function openMigrateModal() {
+            const rawData = document.getElementById('inputData').value.trim();
+            if (!rawData) { 
+                alert("⚠️ กรุณานำเข้าข้อมูลตารางใหม่ (New Table) ในช่องที่ 1 ให้เรียบร้อยก่อนครับ"); 
+                document.getElementById('inputData').focus();
+                return; 
+            }
+            document.getElementById('migrateModal').style.display = 'flex';
+        }
+
+        function closeMigrateModal() {
+            document.getElementById('migrateModal').style.display = 'none';
+        }
+
+        function extractColsForMigration(rawText) {
+            if (!rawText) return [];
+            const lines = rawText.split('\n');
+            let cols = [];
+            for (let i = 0; i < lines.length; i++) {
+                let line = lines[i].trim();
+                if (!line || line.includes("ชื่อแอตทริบิวต์") || line.includes("ลำดับ") || line.includes("ชนิดข้อมูล")) continue;
+
+                let normLine = line.replace(/\t/g, ' ').replace(/\s+/g, ' ').replace(/\|/g, '').trim();
+                let parts = normLine.split(' ');
+
+                if (/^\d+\.?$/.test(parts[0]) || /^[A-Z]\.$/i.test(parts[0])) parts.shift();
+                if (parts.length === 0) continue;
+
+                let colName = parts[0].toUpperCase().replace(/[^A-Z0-9_]/g, '');
+                
+                let hasDataType = /(VARCHAR2|NUMBER|CHAR|DATE|TIMESTAMP|BLOB|CLOB|FLOAT|INTEGER)/i.test(normLine.toUpperCase());
+
+                if (/^[A-Z_][A-Z0-9_]*$/.test(colName) && hasDataType) {
+                    cols.push(colName);
+                }
+            }
+            return cols;
+        }
+
+        function processMigrateScript() {
+            const newTableName = document.getElementById('tableName').value.trim().toUpperCase() || 'NEW_TABLE';
+            const oldTableName = document.getElementById('oldTableName').value.trim().toUpperCase() || 'OLD_TABLE';
+            
+            const newRawData = document.getElementById('inputData').value;
+            const oldRawData = document.getElementById('oldDataDict').value;
+
+            const newCols = extractColsForMigration(newRawData);
+            const oldCols = extractColsForMigration(oldRawData);
+
+            if (oldCols.length === 0) { 
+                alert("❌ ไม่พบคอลัมน์ในข้อมูลตารางเก่าครับ โปรดตรวจสอบข้อมูล Data Dictionary ของตารางเก่าอีกครั้ง"); 
+                return; 
+            }
+
+            // 🌟 ค้นหา Primary Key ของตารางเก่า 🌟
+            let oldPk = null;
+            const oldLines = oldRawData.split('\n');
+            for (let i = 0; i < oldLines.length; i++) {
+                let line = oldLines[i].toUpperCase();
+                // ค้นหาบรรทัดที่มีคำว่า PK เพื่อดึงชื่อคอลัมน์
+                if (/\bPK\b/.test(line)) {
+                    let norm = line.replace(/\t/g, ' ').replace(/\s+/g, ' ').replace(/\|/g, '').trim();
+                    let pts = norm.split(' ');
+                    if (/^\d+\.?$/.test(pts[0]) || /^[A-Z]\.$/i.test(pts[0])) pts.shift();
+                    if (pts.length > 0) { 
+                        oldPk = pts[0].replace(/[^A-Z0-9_]/g, ''); 
+                        break; 
+                    }
+                }
+            }
+            // ถ้าหาคำว่า PK ไม่เจอ ให้ใช้คอลัมน์แรกที่ลงท้ายด้วย _ID หรือคอลัมน์แรกสุดแทน
+            if (!oldPk) {
+                oldPk = oldCols.find(c => c.endsWith('_ID')) || oldCols[0];
+            }
+
+            let selectParts = [];
+            newCols.forEach((col, index) => {
+                if (index === 0 && col.endsWith('_ID')) {
+                    selectParts.push(`    ${newTableName}_SEQ.NEXTVAL /* ${col} */`);
+                } 
+                else if (col === 'MAP_ID') { // 🌟 ดึง PK เก่ามาใส่ให้ MAP_ID 🌟
+                    selectParts.push(`    SRC.${oldPk} /* ${col} (PK ตารางเก่า) */`);
+                }
+                else if (['CREATED_BY', 'LAST_UPDATE_BY', 'CREATE_USER', 'UPDATE_USER'].includes(col)) {
+                    selectParts.push(`    'INITIAL' /* ${col} */`);
+                } 
+                else if (['CREATED_DTM', 'LAST_UPDATE_DTM', 'CREATE_DATETIME', 'UPDATE_DATETIME'].includes(col)) {
+                    selectParts.push(`    SYSDATE /* ${col} */`);
+                } 
+                else if (oldCols.includes(col)) {
+                    selectParts.push(`    SRC.${col}`);
+                } 
+                else {
+                    selectParts.push(`    NULL /* TODO: คอลัมน์นี้ไม่มีในตารางเก่า (${col}) */`);
+                }
+            });
+
+            let sql = `INSERT INTO ${newTableName} (\n    ${newCols.join(', ')}\n)\n`;
+            sql += `SELECT \n${selectParts.join(',\n')}\n`;
+            sql += `FROM ${oldTableName} SRC\n`;
+            sql += `/* INNER JOIN ... ON ... */\n`;
+            sql += `WHERE 1=1;`;
+
+            document.getElementById('outputMigrate').value = sql;
+            document.getElementById('migrateResultBlock').style.display = 'block';
+            closeMigrateModal();
+            
+            setTimeout(() => {
+                document.getElementById('migrateResultBlock').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
         }
     </script>
 </body>
